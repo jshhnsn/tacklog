@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="container">
+        <h1>hello, search</h1>
+        <form method="get">
+            <div class="mb-3">
+                <input type="text" class="form-control" name="q">
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+    </div>
+    {% if search_term %}
+        <div class="container">
+            <hr>
+            <p>Showing {{ search_results|length }} results for: <strong>{{ search_term }}</strong></p>
+            <div class="container">
+                <div class="row" >
+                    {% for result in search_results %}
+                        <div class="col" style="padding-bottom: 2rem;">
+                            <div class="card" style="width: 18rem;">
+                                <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/{% if result.img %}{{ result.img }}{% else %}nocover.png{% endif %}" class="card-img-top" alt="...">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ result.name }}</h5>
+                                    <p class="card-text">Release date: <strong>{{ result.first_release_date }}</strong></p>
+                                    <a href="#" class="btn btn-primary">Add to backlog</a>
+                                </div>
+                            </div>
+                        </div>  
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

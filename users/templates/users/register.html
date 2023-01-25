@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="container">
+        <h2>Register</h2>
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="id_username" class="form-label">Username</label>
+                {{ form.username }}
+                {% if form.errors %}
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            {% if field == 'username' %}
+                            <div id="emailHelp" class="form-text" style="color: red;">{{ error }}</div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                {% endif %}
+                <div id="emailHelp" class="form-text"><strong>Required.</strong> 150 characters or fewer. Letters, digits and @/./+/-/_ only.</div>
+            </div>
+            <div class="mb-3">
+                <label for="id_password1" class="form-label">Password</label>
+                {{ form.password1 }}
+                {% if form.errors %}
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            {% if field == 'password1' %}
+                            <div id="emailHelp" class="form-text" style="color: red;">{{ error }}</div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                {% endif %}
+                <div id="passwordHelp" class="form-text">
+                    <ul>
+                        <li>Your password can’t be too similar to your other personal information.</li>
+                        <li>Your password must contain at least 8 characters.</li>
+                        <li>Your password can’t be a commonly used password.</li>
+                        <li>Your password can’t be entirely numeric.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="id_password2" class="form-label">Re-enter password</label>
+                {{ form.password2 }}
+                {% if form.errors %}
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            {% if field == 'password2' %}
+                            <div id="emailHelp" class="form-text" style="color: red;">{{ error }}</div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById('id_username').className = "form-control";
+        document.getElementById('id_password1').className = "form-control";
+        document.getElementById('id_password2').className = "form-control";
+    </script>
+{% endblock %}
+
+
+
+
+
+
+
+
