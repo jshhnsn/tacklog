@@ -9,7 +9,7 @@
                 {% if message.extra_tags == 'fail' %}
                     <div id="emailHelp" class="form-text" style="color: red;">{{ message }}</div>
                 {% else %}
-                    <div id="emailHelp" class="form-text" style="color: blue;">{{ message|safe }}</div>
+                    <div id="emailHelp" class="form-text" style="color: #0d6efd;">{{ message|safe }}</div>
                 {% endif %}
             {% endfor %}
         {% endif %}

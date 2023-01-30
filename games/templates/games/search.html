@@ -14,6 +14,11 @@
         <div class="container">
             <hr>
             <p>Showing {{ search_results|length }} results for: <strong>{{ search_term }}</strong></p>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="form-text" style="color: red;">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
             <div class="container">
                 <div class="row" >
                     {% for result in search_results %}
@@ -25,7 +30,13 @@
                                     <p class="card-text">Release date: <strong>{{ result.first_release_date }}</strong></p>
                                     <form method="post">
                                         {% csrf_token %}
-                                        <button class="btn btn-primary" href="#" name="game" type="submit" value="{{ result.id }}">Add to backlog</button>
+                                        {% if result.id in backlog %}
+                                            <button class="btn btn-success" onclick="removing(this);"name="game" type="submit" value="{{ result.id }}" >&#x2713; In backlog</button>
+                                        {% else %}
+                                            <button class="btn btn-primary" onclick="adding(this);" name="game" type="submit" value="{{ result.id }}">
+                                                Add to backlog
+                                            </button>
+                                        {% endif %}
                                     </form>     
                                 </div>
                             </div>
@@ -35,4 +46,13 @@
             </div>
         </div>
     {% endif %}
+    <script>
+        function adding(e) {
+            e.innerHTML = "<div class=\"spinner-border spinner-border-sm\" role=\"status\"><span class=\'visually-hidden\''>Loading...</span></div> Adding";
+        }
+        function removing(e) {
+            e.className = "btn btn-secondary";
+            e.innerHTML = "<div class=\"spinner-border spinner-border-sm\" role=\"status\"><span class=\'visually-hidden\''>Loading...</span></div> Removing";
+        }
+    </script>
 {% endblock %}
