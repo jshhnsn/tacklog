@@ -17,13 +17,16 @@
             <div class="container">
                 <div class="row" >
                     {% for result in search_results %}
-                        <div class="col" style="padding-bottom: 2rem;">
-                            <div class="card" style="width: 18rem;">
+                        <div class="col gy-4">
+                            <div class="col card" style="width: 18rem; margin: auto;">
                                 <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/{% if result.img %}{{ result.img }}{% else %}nocover.png{% endif %}" class="card-img-top" alt="...">
                                 <div class="card-body">
                                     <h5 class="card-title">{{ result.name }}</h5>
                                     <p class="card-text">Release date: <strong>{{ result.first_release_date }}</strong></p>
-                                    <a href="#" class="btn btn-primary">Add to backlog</a>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <button class="btn btn-primary" href="#" name="game" type="submit" value="{{ result.id }}">Add to backlog</button>
+                                    </form>     
                                 </div>
                             </div>
                         </div>  

@@ -1,14 +1,38 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <h2>Login</h2>
+    <div class="container">
+        <h2>Login</h2>
 
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.extra_tags == 'fail' %}
+                    <div id="emailHelp" class="form-text" style="color: red;">{{ message }}</div>
+                {% else %}
+                    <div id="emailHelp" class="form-text" style="color: blue;">{{ message|safe }}</div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
 
-    <form action="" method="post">
-        {% csrf_token %}
-        {{ form }}
-    </form>
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="id_username" class="form-label">Username</label>
+                {{ form.username }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_password" class="form-label">Password</label>
+                {{ form.password }}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Login</button>
+            <div id="registerHelp" class="form-text">Don't have an account? <a href="{% url 'register' %}">Register here</a>.</div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('id_username').className = "form-control";
+        document.getElementById('id_password').className = "form-control";
+    </script>
 {% endblock %}

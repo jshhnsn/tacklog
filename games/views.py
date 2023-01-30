@@ -1,5 +1,6 @@
-from django.http import HttpResponse
-from django.shortcuts import render
+from .models import Backlogged  
+from django.contrib import messages
+from django.shortcuts import render, redirect
 from re import findall
 
 import datetime
@@ -21,12 +22,16 @@ def search(request):
     
     if query:
         games = requests.post(f'{endpoint}/games', headers=HEADERS, data=f'fields id,name,first_release_date,category; search "{query}"; where total_rating_count > 0 & category = (0,8); limit 500;').json()
-        print(games)
+        # print(games)
         ids = []
 
         for game in games:
             ids.append(game['id'])
-            game['first_release_date'] = datetime.datetime.fromtimestamp(game['first_release_date']).strftime('%Y-%m-%d')
+            if 'first_release_date' in game:
+                game['first_release_date'] = datetime.datetime.fromtimestamp(game['first_release_date']).strftime('%Y-%m-%d')
+            else:
+                game['first_release_date'] = 'Unknown'
+
 
         ids = ','.join(str(x) for x in ids)
         images = requests.post(f'{endpoint}/covers', headers=HEADERS, data=f'fields url,game; where game = ({ids}); limit 500;').json()
@@ -37,5 +42,14 @@ def search(request):
                     game['img'] = findall('(?:\/.+\/)(.*\.jpg)',image['url'])[0]
 
         data['search_results'] = games
+    
+    if request.method == 'POST':
+        if not request.user.is_authenticated:
+            messages.info(request, 'You must be logged in to add games to your backlog.')
+            return redirect('login')
+        game = int(request.POST['game'])
+        user = request.user
+        log = Backlogged(game=game, date_added=datetime.datetime.now(), user_id=user)
+        log.save()
     
     return render(request, 'games/search.html', data)

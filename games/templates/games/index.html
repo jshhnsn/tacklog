@@ -1,5 +1,9 @@
 {% extends "layout.html" %}
+{% load static %}
 
 {% block content %}
-    <h1>hello, index</h1>
+    <div class="container">
+        <h1>Welcome to Tacklog!</h1>
+        <img class="img-fluid rounded" src="{% static 'img/about.png' %}" />
+    </div>
 {% endblock %}

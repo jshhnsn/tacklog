@@ -17,7 +17,7 @@
                         {% endfor %}
                     {% endfor %}
                 {% endif %}
-                <div id="emailHelp" class="form-text"><strong>Required.</strong> 150 characters or fewer. Letters, digits and @/./+/-/_ only.</div>
+                <div id="usernameHelp" class="form-text"><strong>Required.</strong> 150 characters or fewer. Letters, digits and @/./+/-/_ only.</div>
             </div>
             <div class="mb-3">
                 <label for="id_password1" class="form-label">Password</label>
@@ -26,7 +26,7 @@
                     {% for field, errors in form.errors.items %}
                         {% for error in errors %}
                             {% if field == 'password1' %}
-                            <div id="emailHelp" class="form-text" style="color: red;">{{ error }}</div>
+                            <div id="password1Help" class="form-text" style="color: red;">{{ error }}</div>
                             {% endif %}
                         {% endfor %}
                     {% endfor %}
@@ -47,13 +47,14 @@
                     {% for field, errors in form.errors.items %}
                         {% for error in errors %}
                             {% if field == 'password2' %}
-                            <div id="emailHelp" class="form-text" style="color: red;">{{ error }}</div>
+                            <div id="password2Help" class="form-text" style="color: red;">{{ error }}</div>
                             {% endif %}
                         {% endfor %}
                     {% endfor %}
                 {% endif %}
             </div>
             <button type="submit" class="btn btn-primary">Submit</button>
+            <div id="loginHelp" class="form-text">Already have an account? <a href="{% url 'login' %}">Login here</a>.</div>
         </form>
     </div>
     <script>
@@ -62,11 +63,3 @@
         document.getElementById('id_password2').className = "form-control";
     </script>
 {% endblock %}
-
-
-
-
-
-
-
-
