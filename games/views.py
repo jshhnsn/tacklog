@@ -48,7 +48,9 @@ def search(request):
         # Add games object into context data object.
         context_data['search_results'] = games
 
+    # If the user is authenticated...
     if request.user.is_authenticated:
+
         user = User.objects.get(username=request.user)
         games = user.backlog.values('game')
         backlog = []
@@ -74,7 +76,39 @@ def search(request):
             messages.info(request, 'You must be logged in to add games to your backlog.')
             return redirect('login')
 
-
-    
     # print(context_data)
     return render(request, 'games/search.html', context_data)
+
+
+def backlog(request):
+
+    context_data = {}
+
+    if request.user.is_authenticated:
+        user = User.objects.get(username=request.user)
+        backlog = Backlogged.objects.filter(user_id=user).values()
+
+        ids = []
+        for record in backlog:
+            ids.append(record['game'])
+        ids = ','.join(str(x) for x in ids)
+
+        print(ids)
+        games = requests.post(f'{endpoint}/games', headers=HEADERS, data=f'fields id,name,first_release_date; where id = ({ids}); limit 500;').json()
+
+
+        for game in games:
+            for record in backlog:
+                if game['id'] == record['game']:
+                    game['date_added'] = record['date_added']
+            if 'first_release_date' in game:
+                game['first_release_date'] = datetime.datetime.fromtimestamp(game['first_release_date']).strftime('%b. %d, %Y')
+            else:
+                game['first_release_date'] = 'Unknown'
+
+        print(games)
+        context_data['backlog'] = games
+
+        
+
+    return render(request, 'games/backlog.html', context_data)
