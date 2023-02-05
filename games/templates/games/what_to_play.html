@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="container mt-5">
+        {% if not game %}  
+        <div class="alert alert-info" role="alert">
+            There are no games in your backlog. Add some <a class="alert-link" href="{% url 'search' %}">here</a>.
+        </div>
+        {% else %}
+            <div class="card mx-auto" style="max-width: 60%;">
+                <div class="card-header">
+                    You should play...
+                </div>
+
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/{% if game.img %}{{ game.img }}{% else %}nocover.png{% endif %}" class="card-img" alt="{{ game.name }}">
+                        </div>
+                        <div class="col">
+                            <h5 class="card-title">{{ game.name }}</h5>
+                            {% if game.first_release_date %}
+                                <p class="card-text"><small class="text-muted">Release date: {{ game.first_release_date }}</small></p>
+                            {% endif %}
+                            <p class="card-text">{{ game.summary }}</p>
+                            {% if game.days_elapsed == 0 %}
+                                <p class="card-text"><small class="text-muted">This game was added to your backlog today.</small></p>
+                            {% else %}
+                                <p class="card-text"><small class="text-muted">This game has been in your backlog for <mark>{{ game.days_elapsed }}</mark> days.</small></p>
+                            {% endif %}
+                            <a href="#" class="btn btn-success">Mark as playing</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

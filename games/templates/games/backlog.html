@@ -3,25 +3,38 @@
 {% block content %}
     <div class="container">
         <h1>hello, backlog</h1>
-        <table class="table">
+        <table class="table align-middle">
             <thead>
                 <tr>
                     <th scope="col">#</th>
                     <th scope="col">Name</th>
-                    <th scope="col">Release date</th>
-                    <th scope="col">Date added to backlog</th>
+                    <th class="text-center" scope="col">Release date</th>
+                    <th class="text-center" scope="col">Date added to backlog</th>
+                    <th scope="col" style="width: 135px;"></th>
                 </tr>
             </thead>
-            <tbody>
-                {% for game in backlog %}
-                    <tr>
-                        <th scope="row">{{ forloop.counter }}</th>
-                        <td>{{ game.name }}</td>
-                        <td>{{ game.first_release_date }}</td>
-                        <td>{{ game.date_added }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-          </table>
+            {% if backlog %}
+                <tbody>
+                    {% for game in backlog %}
+                        <tr>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td>{{ game.name }}</td>
+                            <td class="text-center">{{ game.release_date }}</td>
+                            <td class="text-center">{{ game.date_added }}</td>
+                            <td class="text-center">
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <button class="btn btn-dark" name="game" onclick="removing(this)" type="submit" value="{{ game.game }}">&#x2717; Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                {% else %}
+                <div class="alert alert-info" role="alert">
+                    There are no games in your backlog. Add some <a class="alert-link" href="{% url 'search' %}">here</a>.
+                </div>
+                {% endif %}
+            </table>
     </div>
 {% endblock %}

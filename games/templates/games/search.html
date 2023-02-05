@@ -11,7 +11,7 @@
         </form>
     </div>
     {% if search_term %}
-        <div class="container">
+        <div class="container mx-auto">
             <hr>
             <p>Showing {{ search_results|length }} results for: <strong>{{ search_term }}</strong></p>
             {% if messages %}
@@ -20,10 +20,10 @@
                 {% endfor %}
             {% endif %}
             <div class="container">
-                <div class="row" >
+                <div class="row row-cols-auto">
                     {% for result in search_results %}
-                        <div class="col gy-4">
-                            <div class="col card" style="width: 18rem; margin: auto;">
+                        <div class="gy-4">
+                            <div class="card mx-auto" style="width: 18rem;">
                                 <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/{% if result.img %}{{ result.img }}{% else %}nocover.png{% endif %}" class="card-img-top" alt="...">
                                 <div class="card-body">
                                     <h5 class="card-title">{{ result.name }}</h5>
@@ -31,7 +31,7 @@
                                     <form method="post">
                                         {% csrf_token %}
                                         {% if result.id in backlog %}
-                                            <button class="btn btn-success" onclick="removing(this);"name="game" type="submit" value="{{ result.id }}" >&#x2713; In backlog</button>
+                                            <button class="btn btn-success" onclick="removing(this);" name="game" type="submit" value="{{ result.id }}" >&#x2713; In backlog</button>
                                         {% else %}
                                             <button class="btn btn-primary" onclick="adding(this);" name="game" type="submit" value="{{ result.id }}">
                                                 Add to backlog
@@ -46,13 +46,4 @@
             </div>
         </div>
     {% endif %}
-    <script>
-        function adding(e) {
-            e.innerHTML = "<div class=\"spinner-border spinner-border-sm\" role=\"status\"><span class=\'visually-hidden\''>Loading...</span></div> Adding";
-        }
-        function removing(e) {
-            e.className = "btn btn-secondary";
-            e.innerHTML = "<div class=\"spinner-border spinner-border-sm\" role=\"status\"><span class=\'visually-hidden\''>Loading...</span></div> Removing";
-        }
-    </script>
 {% endblock %}
