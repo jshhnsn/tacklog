@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from .models import Backlogged
+from .models import Backlogged, Recommend
 
-# Register your models here.
-admin.site.register(Backlogged)
+class BackloggedAdmin(admin.ModelAdmin):
+    readonly_fields = ('date_added',)
+
+class RecommendAdmin(admin.ModelAdmin):
+    readonly_fields = ('date_recommended',)
+
+admin.site.register(Backlogged, BackloggedAdmin)
+admin.site.register(Recommend, RecommendAdmin)

@@ -1,4 +1,4 @@
-from .models import Backlogged  
+from .models import Backlogged, Recommend
 
 from datetime import datetime
 from django.contrib import messages
@@ -85,13 +85,12 @@ def search(request):
             game = int(request.POST['game'])
             # Add to backlog if not already there.
             if not game in backlog:
-                log = Backlogged(game=game, date_added=timezone.now(), 
-                                 user_id=user)
+                log = Backlogged(game=game, user=user)
                 log.save()
                 backlog.append(game)
             # Delete from backlog if already there.
             else:
-                log = Backlogged.objects.get(user_id=user, game=game)
+                log = Backlogged.objects.get(user=user, game=game)
                 log.delete()
                 backlog.remove(game)
 
@@ -126,11 +125,11 @@ def backlog(request):
             # Get game ID.
             game = int(request.POST['game'])
             # Remove game from backlog.
-            log = Backlogged.objects.get(user_id=user, game=game)
+            log = Backlogged.objects.get(user=user, game=game)
             log.delete()
         
         # Get games in user's backlog.
-        backlog = Backlogged.objects.filter(user_id=user).order_by(
+        backlog = Backlogged.objects.filter(user=user).order_by(
             '-date_added').values()
         
         # Transform to list of game IDs.
@@ -170,19 +169,43 @@ def play_next(request):
     if request.user.is_authenticated:
         # Get user details.
         user = User.objects.get(username=request.user)
-        # Get games in user's backlog.
-        backlog = Backlogged.objects.filter(user_id=user).order_by(
-            '-date_added').values()
+        # Get most recently recommended game.
+        
+        
+        recommended = Recommend.objects.filter(user=user).order_by(
+            '-date_recommended').values().first()
+        
+        # If a previously recommended game exists.
+        if recommended:
+            # Get the date dadded and game id from backlog.
+            backlog = Backlogged.objects.get(
+                user=user, id=recommended['backlog_id'])
+            recommended['date_added'] = backlog.date_added
+            recommended['game'] = backlog.game
 
-        # If there are no games in backlog, return context data with no game.
-        if not backlog:
-            context_data['game'] = False
-
-        # If the user has games in their backlog.
+        # If no game was previously recommended, choose game to recommend.
         else:
-            # Choose a game at random.
-            winner = choice(backlog)
-            id = winner['game']
+            # Get games in user's backlog.
+            backlog = Backlogged.objects.filter(user=user).order_by(
+                '-date_added').values()
+
+            # If there are no games in backlog, return context with no game.
+            if not backlog:
+                context_data['game'] = False
+
+            # If the user has games in their backlog.
+            else:
+                # Choose a game at random.
+                recommended = choice(backlog)
+                log = Recommend(backlog=Backlogged.objects.get(
+                    user=user, game=recommended['game']))
+                log.save()
+                log.user.add(user)
+
+        # If a recommendation has been made.
+        if recommended:
+
+            id = recommended['game']
             # Get game info from IGDB
             game = requests.post(f'{endpoint}/games', headers=HEADERS, 
                         data=f'''
@@ -192,8 +215,10 @@ def play_next(request):
                         ).json()[0]
             
             # Calculate days since game was added to backlog.
-            current_date = datetime.strptime(datetime.now().strftime('%Y/%m/%d'),"%Y/%m/%d")
-            added_date = datetime.strptime(winner['date_added'].strftime('%Y/%m/%d'),"%Y/%m/%d")
+            current_date = datetime.strptime(
+                datetime.now().strftime('%Y/%m/%d'),"%Y/%m/%d")
+            added_date = datetime.strptime(
+                recommended['date_added'].strftime('%Y/%m/%d'),"%Y/%m/%d")
             game['days_elapsed'] = (current_date - added_date).days
             
             # Convert the release date format.
@@ -203,10 +228,10 @@ def play_next(request):
             
             # Get the game's cover art.
             image = requests.post(f'{endpoint}/covers', headers=HEADERS, 
-                               data=f'''
-                               fields url,game; where game = {id};
-                               '''
-                               ).json()[0]
+                                data=f'''
+                                fields url,game; where game = {id};
+                                '''
+                                ).json()[0]
             game['img'] = findall('(?:\/.+\/)(.*\.jpg)',image['url'])[0]
             context_data['game'] = game
     

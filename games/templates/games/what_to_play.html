@@ -24,9 +24,11 @@
                             {% endif %}
                             <p class="card-text">{{ game.summary }}</p>
                             {% if game.days_elapsed == 0 %}
-                                <p class="card-text"><small class="text-muted">This game was added to your backlog today.</small></p>
+                                <p class="card-text"><small class="text-muted">This game was added to your backlog <mark>today</mark>.</small></p>
+                            {% elif game.days_elapsed == 1 %}
+                                <p class="card-text"><small class="text-muted">This game was added to your backlog <mark>yesterday</mark>.</small></p>
                             {% else %}
-                                <p class="card-text"><small class="text-muted">This game has been in your backlog for <mark>{{ game.days_elapsed }}</mark> days.</small></p>
+                                <p class="card-text"><small class="text-muted">This game has been in your backlog for <mark>{{ game.days_elapsed }} days</mark>.</small></p>
                             {% endif %}
                             <a href="#" class="btn btn-success">Mark as playing</a>
                         </div>
