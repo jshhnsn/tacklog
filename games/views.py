@@ -169,11 +169,11 @@ def play_next(request):
     if request.user.is_authenticated:
         # Get user details.
         user = User.objects.get(username=request.user)
+
         # Get most recently recommended game.
-        
-        
         recommended = Recommend.objects.filter(user=user).order_by(
             '-date_recommended').values().first()
+
         
         # If a previously recommended game exists.
         if recommended:
@@ -182,12 +182,21 @@ def play_next(request):
                 user=user, id=recommended['backlog_id'])
             recommended['date_added'] = backlog.date_added
             recommended['game'] = backlog.game
+        
+        # If no game was previously recommended, or current game is passed, 
+        # choose (new) game to recommend.
+        if not recommended or request.method == 'POST':
 
-        # If no game was previously recommended, choose game to recommend.
-        else:
-            # Get games in user's backlog.
-            backlog = Backlogged.objects.filter(user=user).order_by(
-                '-date_added').values()
+            # If user is passing get games in backlog minus passed game.
+            if request.method == 'POST' and request.POST.get('pass') == 'pass':
+                passed = recommended['game']
+                backlog = Backlogged.objects.filter(user=user).order_by(
+                '-date_added').exclude(game=passed).values()
+            
+            else:
+                # Get all games in user's backlog.
+                backlog = Backlogged.objects.filter(user=user).order_by(
+                    '-date_added').values()
 
             # If there are no games in backlog, return context with no game.
             if not backlog:

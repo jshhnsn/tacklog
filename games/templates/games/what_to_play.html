@@ -9,9 +9,20 @@
         {% else %}
             <div class="card mx-auto" style="max-width: 60%;">
                 <div class="card-header">
-                    You should play...
+                    <div class="container">
+                        <div class="row">
+                            <div class="col my-auto">You should play...</div>
+                            <div class="col text-end">
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <button class="btn btn-outline-secondary" name="pass" onclick="passing(this);" type="submit" value="pass">
+                                        Maybe next time
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
                 <div class="card-body">
                     <div class="row">
                         <div class="col">
