@@ -11,13 +11,25 @@
                 <div class="card-header">
                     <div class="container">
                         <div class="row">
-                            <div class="col my-auto">You should play...</div>
+                            <div class="col my-auto">
+                                {% if status == 'playing' %}
+                                    You're currently playing
+                                {% else %}
+                                    You should play...
+                                {% endif %}
+                            </div>
                             <div class="col text-end">
                                 <form method="post">
                                     {% csrf_token %}
-                                    <button class="btn btn-outline-secondary" name="pass" onclick="passing(this);" type="submit" value="pass">
-                                        Maybe next time
-                                    </button>
+                                    {% if status == 'playing' %}
+                                        <button class="btn btn-success" name="finish" onclick="loading(this);" type="submit" value="{{ game.id }}">
+                                            Mark as finished
+                                        </button>  
+                                    {% else %}
+                                        <button class="btn btn-outline-secondary" name="pass" onclick="loading(this);" type="submit" value="{{ game.id }}">
+                                            Maybe next time
+                                        </button>
+                                    {% endif %}
                                 </form>
                             </div>
                         </div>
@@ -41,7 +53,14 @@
                             {% else %}
                                 <p class="card-text"><small class="text-muted">This game has been in your backlog for <mark>{{ game.days_elapsed }} days</mark>.</small></p>
                             {% endif %}
-                            <a href="#" class="btn btn-success">Mark as playing</a>
+                            <form method="post">
+                                {% csrf_token %}
+                                {% if status == 'playing' %}
+                                    <button class="btn btn-outline-secondary" name="abandon" onclick="loading(this);" type="submit" value="{{ game.id }}">Return to backlog</button>
+                                {% else %}
+                                    <button class="btn btn-primary" name="playing" onclick="loading(this);" type="submit" value="{{ game.id }}">Mark as playing</button>
+                                {% endif %}
+                            </form>
                         </div>
                     </div>
                 </div>

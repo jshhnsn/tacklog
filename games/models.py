@@ -20,3 +20,13 @@ class Recommend(models.Model):
 
     def __str__(self):
         return f'{self.backlog.user} was recommended {self.backlog.game}'
+
+
+class Playing(models.Model):
+    backlog = models.ForeignKey(Backlogged, related_name='playing', 
+                                on_delete=models.CASCADE)
+    date_started = models.DateTimeField(auto_now=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.user} is playing {self.backlog.game}'
