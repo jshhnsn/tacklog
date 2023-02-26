@@ -19,12 +19,12 @@
                         <tr>
                             <th scope="row">{{ forloop.counter }}</th>
                             <td>{{ game.name }}</td>
-                            <td class="text-center">{{ game.release_date }}</td>
-                            <td class="text-center">{{ game.date_added }}</td>
+                            <td class="text-center">{{ game.first_release_date }}</td>
+                            <td class="text-center">{{ game.date_backlogged }}</td>
                             <td class="text-center">
                                 <form method="post">
                                     {% csrf_token %}
-                                    <button class="btn btn-dark" name="game" onclick="removing(this)" type="submit" value="{{ game.game }}">&#x2717; Remove</button>
+                                    <button class="btn btn-dark" name="game" onclick="removing(this)" type="submit" value="{{ game.id }}">&#x2717; Remove</button>
                                 </form>
                             </td>
                         </tr>

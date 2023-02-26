@@ -12,13 +12,6 @@ from re import findall
 import random
 import requests
 
-endpoint = 'https://api.igdb.com/v4'
-HEADERS = {
-    'Client-ID': 'eclpixd8yx6t9lfnn52s84xkcpgyq0',
-    'Authorization': 'Bearer 27xap8tn68bt62u6vd6ttfzr4hwt7w'
-}
-
-
 
 def index(request):
     return render(request, 'games/index.html')
@@ -31,42 +24,9 @@ def search(request):
     
     # Check if there is a search term present.
     if query:
-        # Retrieve a list of similar games from IGDB.
-        games = requests.post(f'{endpoint}/games', headers=HEADERS, 
-                              data=f'''
-                              fields id,name,first_release_date,category; 
-                              search "{query}"; where total_rating_count > 0 
-                              & category = (0,8); limit 500;
-                              '''
-                              ).json()
-        
-        # Compile a list of game IDs.
-        ids = []
-        for game in games:
-            ids.append(game['id'])
-            if 'first_release_date' in game:
-                game['first_release_date'] = datetime.fromtimestamp(
-                    game['first_release_date']).strftime('%Y-%m-%d')
-            else:
-                game['first_release_date'] = 'Unknown'
-        ids = ','.join(str(x) for x in ids)
 
-        # Request cover artwork for games from IGDB.
-        images = requests.post(f'{endpoint}/covers', headers=HEADERS, 
-                               data=f'''
-                               fields url,game; where game = ({ids}); 
-                               limit 500;
-                               '''
-                               ).json()
-
-        # Add image filename as a new key into the games object.
-        for image in images:
-            for game in games:
-                if game['id'] == image['game']:
-                    game['img'] = findall(
-                        '(?:\/.+\/)(.*\.jpg)',image['url'])[0]
-
-        # Add games object into context data.
+        # Get games from IGDB.
+        games = igdb_data('search', query)
         context_data['search_results'] = games
 
     # If the user is logged in.
@@ -138,27 +98,18 @@ def backlog(request):
             ids.append(record['game'])
         ids = ','.join(str(x) for x in ids)
 
-        # Request ID, name, and release data for games.
-        games = requests.post(f'{endpoint}/games', headers=HEADERS, 
-                              data=f'''
-                              fields id,name,first_release_date; 
-                              where id = ({ids}); limit 500;
-                              '''
-                              ).json()
+        # Get games from IGDB.
+        games = igdb_data('display', ids)
 
-        # Add data added as a new key into the games object.
-        for entry in backlog:
-            for game in games:
-                if entry['game'] == game['id']:
-                    entry['name'] = game['name']
-                    if 'first_release_date' in game:
-                        entry['release_date'] = datetime.fromtimestamp(
-                            game['first_release_date']).strftime('%b. %d, %Y')
-                    else:
-                        entry['release_date'] = 'Unknown'
+        # Add date added to backlog to the games object.
+        for game in games:
+            for log in backlog:
+                if game['id'] == log['game']:
+                    game['date_backlogged'] = log['date_added']
+
 
     # Render backlog page with list of games.
-        context_data['backlog'] = backlog
+        context_data['backlog'] = games
     return render(request, 'games/backlog.html', context_data)
 
 @login_required
@@ -194,7 +145,6 @@ def play_next(request):
                     Backlogged.objects.get(id=remove.backlog_id).delete()
                 remove.delete()
 
-
         # Get currently playing game and most recently recommended game.
         playing = Playing.objects.filter(user=user).values().first()
         recommended = Recommend.objects.filter(user=user).order_by(
@@ -204,7 +154,7 @@ def play_next(request):
         if playing:
             backlog = Backlogged.objects.filter(user=user, id=playing['backlog_id']).values().first()
             context_data['status'] = 'playing'
-        elif recommended and not to_pass:
+        elif recommended and not to_pass and not to_abandon:
             backlog = Backlogged.objects.filter(user=user,id=recommended['backlog_id']).values().first()
         elif Backlogged.objects.filter(user=user):
             backlog = recommend_game(user, to_pass)
@@ -214,17 +164,7 @@ def play_next(request):
 
 
         # Get game data from IGDB
-        game = requests.post(f'{endpoint}/games', headers=HEADERS, 
-                    data=f'''
-                    fields id,name,first_release_date,summary; 
-                    where id = {backlog['game']}; limit 500;
-                    '''
-                    ).json()[0]
-        
-        # Convert the release date format.
-        if game['first_release_date']:
-            game['first_release_date'] = datetime.fromtimestamp(
-                        game['first_release_date']).strftime('%b. %d, %Y')
+        game = igdb_data('display', backlog['game'])[0]
         
         # Calculate days since game was added to backlog.
         current_date = datetime.strptime(
@@ -232,19 +172,10 @@ def play_next(request):
         added_date = datetime.strptime(
             backlog['date_added'].strftime('%Y/%m/%d'),"%Y/%m/%d")
         game['days_elapsed'] = (current_date - added_date).days
-        
-        # Get the game's cover art.
-        image = requests.post(f'{endpoint}/covers', headers=HEADERS, 
-                            data=f'''
-                            fields url,game; where game = {backlog['game']};
-                            '''
-                            ).json()[0]
-        game['img'] = findall('(?:\/.+\/)(.*\.jpg)',image['url'])[0]
+
         context_data['game'] = game
-        print(context_data)
     
     return render(request, 'games/what_to_play.html', context_data)
-
 
 
 def recommend_game(user, skip):
@@ -255,3 +186,60 @@ def recommend_game(user, skip):
     recommended_log.save()
     recommended_log.user.add(user)
     return selection
+
+
+def igdb_data(query_type, input):
+
+    endpoint = 'https://api.igdb.com/v4'
+    HEADERS = {
+        'Client-ID': 'eclpixd8yx6t9lfnn52s84xkcpgyq0',
+        'Authorization': 'Bearer 27xap8tn68bt62u6vd6ttfzr4hwt7w'
+    }
+
+    if query_type == 'search':
+        data = f'''
+                fields id,name,first_release_date,summary; 
+                search "{input}"; where total_rating_count > 0 
+                & category = (0,8); limit 500;
+                '''
+    elif query_type == 'display':
+        data = f'''
+                fields id,name,first_release_date,summary; 
+                where id = ({input});
+                '''
+    else:
+        return -1
+    
+    # Get list of games from IGDB.
+    games = requests.post(f'{endpoint}/games',
+                          headers=HEADERS,
+                          data=data
+                          ).json()  
+
+    # Compile a list of game IDs and format timestamps.
+    ids = []
+    for game in games:
+        ids.append(game['id'])
+        if 'first_release_date' in game:
+            game['first_release_date'] = datetime.fromtimestamp(
+                game['first_release_date']).strftime('%Y-%m-%d')
+        else:
+            game['first_release_date'] = 'Unknown'
+    ids = ','.join(str(x) for x in ids)
+
+    # Request cover artwork for games from IGDB.
+    images = requests.post(f'{endpoint}/covers', headers=HEADERS, 
+                    data=f'''
+                    fields url,game; where game = ({ids}); 
+                    limit 500;
+                    '''
+                    ).json()
+
+    # Add image filename as a new key into the games object.
+    for image in images:
+        for game in games:
+            if game['id'] == image['game']:
+                game['img'] = findall(
+                    '(?:\/.+\/)(.*\.jpg)',image['url'])[0]
+    
+    return games
