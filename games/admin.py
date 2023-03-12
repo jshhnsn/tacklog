@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Backlogged, Recommend, Playing
+from .models import Backlogged, Recommend, Playing, Goty
 
 class BackloggedAdmin(admin.ModelAdmin):
     readonly_fields = ('date_added',)
@@ -14,3 +14,4 @@ class PlayingAdmin(admin.ModelAdmin):
 admin.site.register(Backlogged, BackloggedAdmin)
 admin.site.register(Recommend, RecommendAdmin)
 admin.site.register(Playing, PlayingAdmin)
+admin.site.register(Goty)

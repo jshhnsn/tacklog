@@ -30,3 +30,12 @@ class Playing(models.Model):
 
     def __str__(self):
         return f'{self.user} is playing {self.backlog.game}'
+
+
+class Goty(models.Model):
+    game = models.IntegerField()
+    year = models.CharField(max_length=4)
+    outlet = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f'{self.outlet} awarded {self.game}'

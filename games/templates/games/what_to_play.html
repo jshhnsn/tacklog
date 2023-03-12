@@ -22,9 +22,7 @@
                                 <form method="post">
                                     {% csrf_token %}
                                     {% if status == 'playing' %}
-                                        <button class="btn btn-success" name="finish" onclick="loading(this);" type="submit" value="{{ game.id }}">
-                                            Mark as finished
-                                        </button>  
+                                        <button class="btn btn-outline-secondary" name="abandon" onclick="loading(this);" type="submit" value="{{ game.id }}">Return to backlog</button>
                                     {% else %}
                                         <button class="btn btn-outline-secondary" name="pass" onclick="loading(this);" type="submit" value="{{ game.id }}">
                                             Maybe next time
@@ -37,8 +35,25 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col">
+                        <div class="col text-center">
                             <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/{% if game.img %}{{ game.img }}{% else %}nocover.png{% endif %}" class="card-img" alt="{{ game.name }}">
+                            {% if game.days_elapsed == 0 %}
+                                <p class="card-text mb-2"><small class="text-muted">This game was added to your backlog <strong>today</strong>.</small></p>
+                            {% elif game.days_elapsed == 1 %}
+                                <p class="card-text mb-2"><small class="text-muted">This game was added to your backlog <strong>yesterday</strong>.</small></p>
+                            {% else %}
+                                <p class="card-text mb-2"><small class="text-muted">This game has been in your backlog for <strong>{{ game.days_elapsed }} days</strong>.</small></p>
+                            {% endif %}
+                            <form method="post">
+                                {% csrf_token %}
+                                {% if status == 'playing' %}
+                                    <button class="btn btn-success" name="finish" onclick="loading(this);" type="submit" value="{{ game.id }}">
+                                        Mark as finished
+                                    </button>  
+                                {% else %}
+                                    <button class="btn btn-primary" name="playing" onclick="loading(this);" type="submit" value="{{ game.id }}">Mark as playing</button>
+                                {% endif %}
+                            </form>
                         </div>
                         <div class="col">
                             <h5 class="card-title">{{ game.name }}</h5>
@@ -46,21 +61,26 @@
                                 <p class="card-text"><small class="text-muted">Release date: {{ game.first_release_date }}</small></p>
                             {% endif %}
                             <p class="card-text">{{ game.summary }}</p>
-                            {% if game.days_elapsed == 0 %}
-                                <p class="card-text"><small class="text-muted">This game was added to your backlog <mark>today</mark>.</small></p>
-                            {% elif game.days_elapsed == 1 %}
-                                <p class="card-text"><small class="text-muted">This game was added to your backlog <mark>yesterday</mark>.</small></p>
-                            {% else %}
-                                <p class="card-text"><small class="text-muted">This game has been in your backlog for <mark>{{ game.days_elapsed }} days</mark>.</small></p>
+                            {% if game.gotys %}
+                            <div class="accordion accordion-flush" id="accordionExample">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingOne">
+                                        <button class="accordion-button collapsed p-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                            <small>🏆 {{ game.gotys|length }} Game of the Year awards</small>
+                                        </button>
+                                    </h2>
+                                    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                                        <div class="accordion-body p-1">
+                                            <ul>
+                                                {% for goty in game.gotys %}
+                                                <li class="card-text"><small class="text-muted">{{ goty.outlet }} ({{ goty.year }})</small></li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             {% endif %}
-                            <form method="post">
-                                {% csrf_token %}
-                                {% if status == 'playing' %}
-                                    <button class="btn btn-outline-secondary" name="abandon" onclick="loading(this);" type="submit" value="{{ game.id }}">Return to backlog</button>
-                                {% else %}
-                                    <button class="btn btn-primary" name="playing" onclick="loading(this);" type="submit" value="{{ game.id }}">Mark as playing</button>
-                                {% endif %}
-                            </form>
                         </div>
                     </div>
                 </div>

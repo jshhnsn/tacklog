@@ -1,4 +1,4 @@
-from .models import Backlogged, Recommend, Playing
+from .models import Backlogged, Recommend, Playing, Goty
 
 from datetime import datetime
 from django.contrib import messages
@@ -173,6 +173,10 @@ def play_next(request):
             backlog['date_added'].strftime('%Y/%m/%d'),"%Y/%m/%d")
         game['days_elapsed'] = (current_date - added_date).days
 
+        gotys = Goty.objects.filter(game=game['id']).values()
+        if gotys:
+            game['gotys'] = gotys
+        
         context_data['game'] = game
     
     return render(request, 'games/what_to_play.html', context_data)
