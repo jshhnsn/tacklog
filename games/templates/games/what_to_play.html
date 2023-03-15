@@ -21,13 +21,13 @@
                             <div class="col text-end">
                                 <form method="post">
                                     {% csrf_token %}
+                                    <button class="btn btn-outline-secondary" onclick="loading(this);" type="submit" value="{{ game.id }}" 
                                     {% if status == 'playing' %}
-                                        <button class="btn btn-outline-secondary" name="abandon" onclick="loading(this);" type="submit" value="{{ game.id }}">Return to backlog</button>
+                                        name="abandon" >Return to backlog
                                     {% else %}
-                                        <button class="btn btn-outline-secondary" name="pass" onclick="loading(this);" type="submit" value="{{ game.id }}">
-                                            Maybe next time
-                                        </button>
+                                        name="pass" >Maybe next time
                                     {% endif %}
+                                    </button>
                                 </form>
                             </div>
                         </div>
@@ -37,22 +37,15 @@
                     <div class="row">
                         <div class="col text-center">
                             <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/{% if game.img %}{{ game.img }}{% else %}nocover.png{% endif %}" class="card-img" alt="{{ game.name }}">
-                            {% if game.days_elapsed == 0 %}
-                                <p class="card-text mb-2"><small class="text-muted">This game was added to your backlog <strong>today</strong>.</small></p>
-                            {% elif game.days_elapsed == 1 %}
-                                <p class="card-text mb-2"><small class="text-muted">This game was added to your backlog <strong>yesterday</strong>.</small></p>
-                            {% else %}
-                                <p class="card-text mb-2"><small class="text-muted">This game has been in your backlog for <strong>{{ game.days_elapsed }} days</strong>.</small></p>
-                            {% endif %}
                             <form method="post">
                                 {% csrf_token %}
+                                <button onclick="loading(this);" type="submit" value="{{ game.id }}" class="btn mt-3
                                 {% if status == 'playing' %}
-                                    <button class="btn btn-success" name="finish" onclick="loading(this);" type="submit" value="{{ game.id }}">
-                                        Mark as finished
-                                    </button>  
+                                    btn-success" name="finish">Mark as finished
                                 {% else %}
-                                    <button class="btn btn-primary" name="playing" onclick="loading(this);" type="submit" value="{{ game.id }}">Mark as playing</button>
+                                    btn-primary" name="playing">Mark as playing
                                 {% endif %}
+                                </button>  
                             </form>
                         </div>
                         <div class="col">
@@ -61,26 +54,38 @@
                                 <p class="card-text"><small class="text-muted">Release date: {{ game.first_release_date }}</small></p>
                             {% endif %}
                             <p class="card-text">{{ game.summary }}</p>
-                            {% if game.gotys %}
-                            <div class="accordion accordion-flush" id="accordionExample">
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingOne">
-                                        <button class="accordion-button collapsed p-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                                            <small>🏆 {{ game.gotys|length }} Game of the Year awards</small>
-                                        </button>
-                                    </h2>
-                                    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-                                        <div class="accordion-body p-1">
-                                            <ul>
-                                                {% for goty in game.gotys %}
-                                                <li class="card-text"><small class="text-muted">{{ goty.outlet }} ({{ goty.year }})</small></li>
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
+                            <table class="table" >
+                                <tbody>
+                                    <thead>
+                                        <td colspan="2"></td>
+                                    </thead>
+                                    <tr>
+                                        <th scope="row">Time in backlog</th>
+                                        <td>{{ game.days_elapsed }} days</td>
+                                    </tr>
+                                    {% if game.time_to_beat %}
+                                        <tr>
+                                            <th scope="row">Time to beat</th>
+                                            <td>{{ game.time_to_beat }} hours</td>
+                                        </tr>
+                                    {% endif %}
+                                    {% if game.gotys %}
+                                        <tr>
+                                            <th scope="row" style="border-bottom: none;">🏆 GOTY awards</th>
+                                            <td style="border-bottom: none;">{{ game.gotys|length }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2" style="border-bottom: none;">
+                                                <ul>
+                                                    {% for goty in game.gotys %}
+                                                        <li class="card-text"><small class="text-muted">{{ goty.outlet }} ({{ goty.year }})</small></li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

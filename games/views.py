@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.utils import timezone
+from howlongtobeatpy import HowLongToBeat
+from operator import itemgetter
 from random import choice
 from re import findall
 
@@ -99,17 +101,20 @@ def backlog(request):
         ids = ','.join(str(x) for x in ids)
 
         # Get games from IGDB.
-        games = igdb_data('display', ids)
+        if ids:
+            games = igdb_data('display', ids)
 
-        # Add date added to backlog to the games object.
-        for game in games:
-            for log in backlog:
-                if game['id'] == log['game']:
-                    game['date_backlogged'] = log['date_added']
+            # Add date added to backlog to the games object.
+            for game in games:
+                for log in backlog:
+                    if game['id'] == log['game']:
+                        game['date_backlogged'] = log['date_added']
 
+            games = sorted(games, key=itemgetter('first_release_date'), reverse=True)
 
-    # Render backlog page with list of games.
-        context_data['backlog'] = games
+            # Render backlog page with list of games.
+            context_data['backlog'] = games
+
     return render(request, 'games/backlog.html', context_data)
 
 @login_required
@@ -176,6 +181,20 @@ def play_next(request):
         gotys = Goty.objects.filter(game=game['id']).values()
         if gotys:
             game['gotys'] = gotys
+
+        hltb_list = HowLongToBeat().search(game['name'])
+
+        if hltb_list is not None and len(hltb_list) > 0:
+            hltb_result = max(
+                hltb_list, key=lambda element: element.similarity)
+            hltb = hltb_result.all_styles
+
+            if hltb % 1 >= 0.25 and hltb % 1 <= 0.75:
+                time = str(int(hltb)) + '½'
+            else:
+                time = str(int(round(hltb)))
+            
+            game['time_to_beat'] = time
         
         context_data['game'] = game
     
@@ -203,13 +222,13 @@ def igdb_data(query_type, input):
     if query_type == 'search':
         data = f'''
                 fields id,name,first_release_date,summary; 
-                search "{input}"; where total_rating_count > 0 
-                & category = (0,8); limit 500;
+                search "{input}"; where total_rating > 0 
+                & category = (0,4,8); limit 500;
                 '''
     elif query_type == 'display':
         data = f'''
                 fields id,name,first_release_date,summary; 
-                where id = ({input});
+                where id = ({input}); limit 500;
                 '''
     else:
         return -1
