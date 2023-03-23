@@ -79,16 +79,36 @@ def backlog(request):
     # If user is logged in.
     if request.user.is_authenticated:
 
-        # Get user details.
+        # Get user details and game playing.
         user = User.objects.get(username=request.user)
+        playing = Playing.objects.filter(user=user).first()
+        print(playing)
 
         # If user is removing a game from backlog.
         if request.method == 'POST':
+            
             # Get game ID.
-            game = int(request.POST['game'])
-            # Remove game from backlog.
-            log = Backlogged.objects.get(user=user, game=game)
-            log.delete()
+            to_play = request.POST.get('play')
+            to_remove = request.POST.get('remove')
+            to_shelve = request.POST.get('shelve')
+
+            if to_play:
+                # Add game to playing table.
+                playing_log = Playing(backlog=Backlogged.objects.get(
+                        user=user, game=to_play), user=user)
+                playing_log.save()
+                return redirect('backlog')
+            
+            if to_remove:
+                remove_log = Backlogged.objects.get(user=user, game=to_remove)
+                remove_log.delete()
+                return redirect('backlog')
+            
+            if to_shelve:
+                playing.delete()
+                return redirect('backlog')
+
+
         
         # Get games in user's backlog.
         backlog = Backlogged.objects.filter(user=user).order_by(
@@ -109,8 +129,16 @@ def backlog(request):
                 for log in backlog:
                     if game['id'] == log['game']:
                         game['date_backlogged'] = log['date_added']
+                        
+                        # Play game as playing.
+                        if playing:
+                            if log['id'] == playing.backlog_id:
+                                game['playing'] = True
+                            else: 
+                                game['playing'] = False
 
-            games = sorted(games, key=itemgetter('first_release_date'), reverse=True)
+            games = sorted(
+                games, key=itemgetter('first_release_date'), reverse=True)
 
             # Render backlog page with list of games.
             context_data['backlog'] = games
@@ -131,7 +159,7 @@ def play_next(request):
         to_play = request.POST.get('playing')
         to_pass = request.POST.get('pass')
         to_finish = request.POST.get('finish')
-        to_abandon = request.POST.get('abandon')
+        to_shelve = request.POST.get('shelve')
 
         if request.method == 'POST':
             
@@ -143,7 +171,7 @@ def play_next(request):
                 return redirect('what-to-play')
             
             # Remove game from playing table.
-            if to_finish or to_abandon:
+            if to_finish or to_shelve:
                 remove = Playing.objects.get(user=user)
                 if to_finish:
                     # Remove from backlog if complete.
@@ -157,10 +185,12 @@ def play_next(request):
         
         # Get the ID of the game to display.
         if playing:
-            backlog = Backlogged.objects.filter(user=user, id=playing['backlog_id']).values().first()
+            backlog = Backlogged.objects.filter(
+                user=user, id=playing['backlog_id']).values().first()
             context_data['status'] = 'playing'
-        elif recommended and not to_pass and not to_abandon:
-            backlog = Backlogged.objects.filter(user=user,id=recommended['backlog_id']).values().first()
+        elif recommended and not to_pass and not to_shelve:
+            backlog = Backlogged.objects.filter(
+                user=user,id=recommended['backlog_id']).values().first()
         elif Backlogged.objects.filter(user=user):
             backlog = recommend_game(user, to_pass)
         else:

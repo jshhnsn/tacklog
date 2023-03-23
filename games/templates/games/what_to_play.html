@@ -23,7 +23,7 @@
                                     {% csrf_token %}
                                     <button class="btn btn-outline-secondary" onclick="loading(this);" type="submit" value="{{ game.id }}" 
                                     {% if status == 'playing' %}
-                                        name="abandon" >Return to backlog
+                                        name="shelve" >Return to backlog
                                     {% else %}
                                         name="pass" >Maybe next time
                                     {% endif %}

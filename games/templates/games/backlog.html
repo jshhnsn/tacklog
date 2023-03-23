@@ -1,30 +1,58 @@
 {% extends "layout.html" %}
 
 {% block content %}
+    <style>
+        button.dropdown-toggle::after {
+            margin-left: 0 !important;
+        }
+    </style>
     <div class="container">
         <h1>hello, backlog</h1>
-        <table class="table align-middle">
+        <table class="table align-middle table-hover">
             <thead>
                 <tr>
                     <th scope="col">#</th>
                     <th scope="col">Name</th>
                     <th class="text-center" scope="col">Release date</th>
                     <th class="text-center" scope="col">Date added to backlog</th>
-                    <th scope="col" style="width: 135px;"></th>
+                    <th class="text-center" scope="col">Actions</th>
                 </tr>
             </thead>
             {% if backlog %}
                 <tbody>
                     {% for game in backlog %}
-                        <tr>
+                        <tr class="{% if game.playing %} table-success{% endif %}">
                             <th scope="row">{{ forloop.counter }}</th>
-                            <td>{{ game.name }}</td>
+                            <td>
+                                <!-- <form method="post">
+                                    {% csrf_token %}
+                                    <button class="btn text-body" name="play" onclick="loading(this)" onmouseout="this.className='btn text-body'" onmouseover="this.className='btn btn-success'" type="submit" value="{{ game.id }}" data-bs-toggle="tooltip" data-bs-title="Mark as playing" data-bs-placement="auto" data-bs-offset="0,10">{{ game.name }}</button>
+                                </form> -->
+                                {{ game.name }}
+                            </td>
                             <td class="text-center">{{ game.first_release_date }}</td>
                             <td class="text-center">{{ game.date_backlogged }}</td>
                             <td class="text-center">
+                                <!-- <form method="post">
+                                    {% csrf_token %}
+                                    <button class="btn btn-sm text-body" name="remove" onclick="removing(this)" onmouseout="this.className='btn btn-sm text-body'" onmouseover="this.className='btn btn-sm btn-danger'" type="submit" value="{{ game.id }}">&#x2717; Remove</button>
+                                </form> -->
                                 <form method="post">
                                     {% csrf_token %}
-                                    <button class="btn btn-dark" name="game" onclick="removing(this)" type="submit" value="{{ game.id }}">&#x2717; Remove</button>
+                                    <div class="dropdown">
+                                        <button class="btn btn-secondary btn-sm dropdown-toggle ms-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            {% if game.playing %}
+                                                <li><button class="dropdown-item" name="remove" type="submit" value="{{ game.id }}">Mark as finished</button></li>
+                                                <li><button class="dropdown-item" name="shelve" type="submit" value="{{ game.id }}">Return to backlog</button></li>
+                                            {% else %}
+                                                <li><button class="dropdown-item" name="play" type="submit" value="{{ game.id }}">Mark as playing</button></li>
+                                            {% endif %}
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><button class="dropdown-item text-danger" name="remove" type="submit" value="{{ game.id }}">&#x2717; Remove</button></li>
+                                        </ul>
+                                    </div>
                                 </form>
                             </td>
                         </tr>
@@ -37,4 +65,9 @@
                 {% endif %}
             </table>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+    <script>
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    </script>
 {% endblock %}
