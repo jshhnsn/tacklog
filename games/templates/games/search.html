@@ -1,49 +1,49 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <div class="container">
-        <h1>hello, search</h1>
-        <form method="get">
-            <div class="mb-3">
-                <input class="form-control" autofocus name="q" type="text">
+<div class="container">
+    <h2 class="my-4">&#x1F50D; Search</h2>
+    <form method="get">
+        <div class="mb-3">
+            <input class="form-control" autofocus name="q" type="text">
+        </div>
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-danger my-3" role="alert">
+                {{ message }}
             </div>
-            <button type="submit" class="btn btn-primary">Search</button>
-        </form>
-    </div>
+        {% endfor %}
+    {% endif %}
     {% if search_term %}
-        <div class="container mx-auto">
-            <hr>
-            <p>Showing {{ search_results|length }} results for: <strong>{{ search_term }}</strong></p>
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="form-text" style="color: red;">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-            <div class="container">
-                <div class="row row-cols-auto">
-                    {% for result in search_results %}
-                        <div class="gy-4">
-                            <div class="card mx-auto" style="width: 18rem;">
-                                <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/{% if result.img %}{{ result.img }}{% else %}nocover.png{% endif %}" class="card-img-top" alt="...">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ result.name }}</h5>
-                                    <p class="card-text">Release date: <strong>{{ result.first_release_date }}</strong></p>
-                                    <form method="post">
-                                        {% csrf_token %}
-                                        {% if result.id in backlog %}
-                                            <button class="btn btn-success" onclick="removing(this);" name="game" type="submit" value="{{ result.id }}" >&#x2713; In backlog</button>
-                                        {% else %}
-                                            <button class="btn btn-primary" onclick="adding(this);" name="game" type="submit" value="{{ result.id }}">
-                                                Add to backlog
-                                            </button>
-                                        {% endif %}
-                                    </form>     
-                                </div>
+        <hr>
+        <p>Showing {{ search_results|length }} results for: <strong>{{ search_term }}</strong></p>
+        <div class="container">
+            <div class="row row-cols-auto">
+                {% for result in search_results %}
+                    <div class="gy-4">
+                        <div class="card mx-auto" style="width: 18rem;">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/{% if result.img %}{{ result.img }}{% else %}nocover.png{% endif %}" class="card-img-top" alt="...">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ result.name }}</h5>
+                                <p class="card-text">Release date: <strong>{{ result.first_release_date }}</strong></p>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    {% if result.id in backlog %}
+                                        <button class="btn btn-success" onclick="removing(this);" name="game" type="submit" value="{{ result.id }}" >&#x2713; In backlog</button>
+                                    {% else %}
+                                        <button class="btn btn-primary" onclick="adding(this);" name="game" type="submit" value="{{ result.id }}">
+                                            Add to backlog
+                                        </button>
+                                    {% endif %}
+                                </form>     
                             </div>
-                        </div>  
-                    {% endfor %}
-                </div>
+                        </div>
+                    </div>  
+                {% endfor %}
             </div>
         </div>
     {% endif %}
+</div>
 {% endblock %}

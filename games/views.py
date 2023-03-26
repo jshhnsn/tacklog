@@ -29,6 +29,11 @@ def search(request):
 
         # Get games from IGDB.
         games = igdb_data('search', query)
+        if games == 401:
+            print(f'Error code: {games}')
+            messages.error(request, f'IGDB API error: 401 Unauthorized')
+            return render(request, 'games/search.html')
+
         context_data['search_results'] = games
 
     # If the user is logged in.
@@ -82,7 +87,6 @@ def backlog(request):
         # Get user details and game playing.
         user = User.objects.get(username=request.user)
         playing = Playing.objects.filter(user=user).first()
-        print(playing)
 
         # If user is removing a game from backlog.
         if request.method == 'POST':
@@ -124,16 +128,41 @@ def backlog(request):
         if ids:
             games = igdb_data('display', ids)
 
+            if games == 401:
+                print(f'Error code: {games}')
+                messages.error(request, f'IGDB API error: 401 Unauthorized')
+                return render(request, 'games/backlog.html')
+
             # Add date added to backlog to the games object.
             for game in games:
                 for log in backlog:
                     if game['id'] == log['game']:
-                        game['date_backlogged'] = log['date_added']
+                        game['date_added'] = log['date_added']
                         
                         # Play game as playing.
                         if playing:
                             if log['id'] == playing.backlog_id:
                                 game['playing'] = True
+                                
+                                # Calculate days since game was added to backlog.
+                                current_date = datetime.strptime(
+                                    datetime.now().strftime('%Y/%m/%d'),"%Y/%m/%d")
+                                added_date = datetime.strptime(
+                                    game['date_added'].strftime('%Y/%m/%d'),"%Y/%m/%d")
+                                started_date = datetime.strptime(
+                                    playing.date_started.strftime('%Y/%m/%d'),"%Y/%m/%d")
+
+                                game['days_elapsed'] = (current_date - added_date).days
+                                game['days_playing'] = (current_date - started_date).days
+
+                                if game['first_release_date'] == 'Unknown':
+                                    game['days_release'] = False
+                                else:
+                                    release_date = datetime.strptime(
+                                        game['first_release_date'],"%Y-%m-%d")
+                                    game['days_release'] = (current_date - release_date).days
+
+                                context_data['playing'] = game
                             else: 
                                 game['playing'] = False
 
@@ -199,7 +228,13 @@ def play_next(request):
 
 
         # Get game data from IGDB
-        game = igdb_data('display', backlog['game'])[0]
+        game = igdb_data('display', backlog['game'])
+        if game == 401:
+            print(f'Error code: {game}')
+            messages.error(request, f'IGDB API error: 401 Unauthorized')
+            return render(request, 'games/what_to_play.html')
+        
+        game = game[0]
         
         # Calculate days since game was added to backlog.
         current_date = datetime.strptime(
@@ -246,7 +281,7 @@ def igdb_data(query_type, input):
     endpoint = 'https://api.igdb.com/v4'
     HEADERS = {
         'Client-ID': 'eclpixd8yx6t9lfnn52s84xkcpgyq0',
-        'Authorization': 'Bearer 27xap8tn68bt62u6vd6ttfzr4hwt7w'
+        'Authorization': 'Bearer 2o02ulh84j10on71el9qcptyvpi4b0'
     }
 
     if query_type == 'search':
@@ -264,10 +299,16 @@ def igdb_data(query_type, input):
         return -1
     
     # Get list of games from IGDB.
-    games = requests.post(f'{endpoint}/games',
+    response = requests.post(f'{endpoint}/games',
                           headers=HEADERS,
                           data=data
-                          ).json()  
+                          )
+
+    # Check that the API call was sucessful
+    if response.status_code == 200:
+        games = response.json()
+    else:
+        return response.status_code
 
     # Compile a list of game IDs and format timestamps.
     ids = []

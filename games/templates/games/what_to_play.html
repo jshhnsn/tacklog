@@ -2,94 +2,102 @@
 
 {% block content %}
     <div class="container mt-5">
-        {% if not game %}  
-        <div class="alert alert-info" role="alert">
-            There are no games in your backlog. Add some <a class="alert-link" href="{% url 'search' %}">here</a>.
-        </div>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-danger" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
         {% else %}
-            <div class="card mx-auto" style="max-width: 60%;">
-                <div class="card-header">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col my-auto">
-                                {% if status == 'playing' %}
-                                    You're currently playing
-                                {% else %}
-                                    You should play...
-                                {% endif %}
+            {% if not game %}  
+            <div class="alert alert-info" role="alert">
+                There are no games in your backlog. Add some <a class="alert-link" href="{% url 'search' %}">here</a>.
+            </div>
+            {% else %}
+                <div class="card mx-auto" style="max-width: 60%;">
+                    <div class="card-header">
+                        <div class="container">
+                            <div class="row">
+                                <h5 class="col my-auto">
+                                    {% if status == 'playing' %}
+                                        You're currently playing
+                                    {% else %}
+                                        You should play...
+                                    {% endif %}
+                                </h5>
+                                <div class="col text-end">
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <button class="btn btn-outline-secondary" onclick="loading(this);" type="submit" value="{{ game.id }}" 
+                                        {% if status == 'playing' %}
+                                            name="shelve" >Return to backlog
+                                        {% else %}
+                                            name="pass" >Maybe next time
+                                        {% endif %}
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
-                            <div class="col text-end">
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-5 text-center">
+                                <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/{% if game.img %}{{ game.img }}{% else %}nocover.png{% endif %}" class="card-img" alt="{{ game.name }}">
                                 <form method="post">
                                     {% csrf_token %}
-                                    <button class="btn btn-outline-secondary" onclick="loading(this);" type="submit" value="{{ game.id }}" 
+                                    <button onclick="loading(this);" type="submit" value="{{ game.id }}" class="btn mt-3
                                     {% if status == 'playing' %}
-                                        name="shelve" >Return to backlog
+                                        btn-success" name="finish">Mark as finished
                                     {% else %}
-                                        name="pass" >Maybe next time
+                                        btn-primary" name="playing">Mark as playing
                                     {% endif %}
-                                    </button>
+                                    </button>  
                                 </form>
+                            </div>
+                            <div class="col">
+                                <h5 class="card-title">{{ game.name }}</h5>
+                                {% if game.first_release_date %}
+                                    <p class="card-text"><small class="text-muted">Release date: {{ game.first_release_date }}</small></p>
+                                {% endif %}
+                                <p class="card-text">{{ game.summary }}</p>
+                                <table class="table" >
+                                    <tbody>
+                                        <thead>
+                                            <td colspan="2"></td>
+                                        </thead>
+                                        <tr>
+                                            <th scope="row">Time in backlog</th>
+                                            <td>{{ game.days_elapsed }} days</td>
+                                        </tr>
+                                        {% if game.time_to_beat %}
+                                            <tr>
+                                                <th scope="row">Time to beat</th>
+                                                <td>{{ game.time_to_beat }} hours</td>
+                                            </tr>
+                                        {% endif %}
+                                        {% if game.gotys %}
+                                            <tr>
+                                                <th scope="row" style="border-bottom: none;">&#x1F3C6; GOTY awards</th>
+                                                <td style="border-bottom: none;">{{ game.gotys|length }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="border-bottom: none;">
+                                                    <ul>
+                                                        {% for goty in game.gotys %}
+                                                            <li class="card-text"><small class="text-muted">{{ goty.outlet }} ({{ goty.year }})</small></li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col text-center">
-                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/{% if game.img %}{{ game.img }}{% else %}nocover.png{% endif %}" class="card-img" alt="{{ game.name }}">
-                            <form method="post">
-                                {% csrf_token %}
-                                <button onclick="loading(this);" type="submit" value="{{ game.id }}" class="btn mt-3
-                                {% if status == 'playing' %}
-                                    btn-success" name="finish">Mark as finished
-                                {% else %}
-                                    btn-primary" name="playing">Mark as playing
-                                {% endif %}
-                                </button>  
-                            </form>
-                        </div>
-                        <div class="col">
-                            <h5 class="card-title">{{ game.name }}</h5>
-                            {% if game.first_release_date %}
-                                <p class="card-text"><small class="text-muted">Release date: {{ game.first_release_date }}</small></p>
-                            {% endif %}
-                            <p class="card-text">{{ game.summary }}</p>
-                            <table class="table" >
-                                <tbody>
-                                    <thead>
-                                        <td colspan="2"></td>
-                                    </thead>
-                                    <tr>
-                                        <th scope="row">Time in backlog</th>
-                                        <td>{{ game.days_elapsed }} days</td>
-                                    </tr>
-                                    {% if game.time_to_beat %}
-                                        <tr>
-                                            <th scope="row">Time to beat</th>
-                                            <td>{{ game.time_to_beat }} hours</td>
-                                        </tr>
-                                    {% endif %}
-                                    {% if game.gotys %}
-                                        <tr>
-                                            <th scope="row" style="border-bottom: none;">🏆 GOTY awards</th>
-                                            <td style="border-bottom: none;">{{ game.gotys|length }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="2" style="border-bottom: none;">
-                                                <ul>
-                                                    {% for goty in game.gotys %}
-                                                        <li class="card-text"><small class="text-muted">{{ goty.outlet }} ({{ goty.year }})</small></li>
-                                                    {% endfor %}
-                                                </ul>
-                                            </td>
-                                        </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endif %}
         {% endif %}
     </div>
 {% endblock %}
