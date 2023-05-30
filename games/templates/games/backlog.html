@@ -5,9 +5,44 @@
         button.dropdown-toggle::after {
             margin-left: 0 !important;
         }
+        .playing-cover {     
+            position: relative;
+            display: block;
+            width: 14em;
+            height: auto;
+            padding-left: 0;
+            padding-right: 0;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+        .stats-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 60%;
+            width: 100%; 
+            opacity: 0;
+            transition: .5s ease;
+            background-color: #292b2cdd;
+            transform: translateY(100%);
+            text-overflow: ellipsis;
+        }
+        .playing-cover:hover .stats-overlay {
+            transform: translateY(0%);
+            opacity: 1;
+        }
+        .row {
+            gap: 1em;
+        }
+        .playing {
+            margin-top: 2em;
+        }
+        .card-img-top {
+            border-radius: 10px;
+        }
     </style>
     <div class="container">
-        <h2 class="my-4">&#127918; My games</h2>
+        <!-- <h2 class="my-4">&#127918; My games</h2> -->
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-danger" role="alert">
@@ -16,45 +51,26 @@
             {% endfor %}
         {% else %}
             {% if playing %}
-            <div class="card" style="max-width: 50%;">
-                <h5 class="card-header">Currently playing</h5>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/{% if playing.img %}{{ playing.img }}{% else %}nocover.png{% endif %}" class="card-img-top" alt="Cover artwork for {{ playing.name }}">
-                        </div>
-                        <div class="col">
-                            <h5 class="card-title">{{ playing.name }}</h5>
-                            <table class="table" >
-                                <tbody>
-                                    <thead>
-                                        <td colspan="2"></td>
-                                    </thead>
-                                    {% if playing.days_release %}
-                                        <tr>
-                                            <th scope="row">Days since release</th>
-                                            <td>{{ playing.days_release }} days</td>
-                                        </tr>
-                                    {% endif %}
-                                    <tr>
-                                        <th scope="row">Days in backlog</th>
-                                        <td>{{ playing.days_elapsed }} days</td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Days playing</th>
-                                        <td>{{ playing.days_playing }} days</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <form method="post">
-                                {% csrf_token %}
-                                <button onclick="loading(this);" type="submit" value="{{ playing.id }}" class="btn me-2 btn-success" name="remove">Mark as finished</button>
-                                <button onclick="loading(this);" type="submit" value="{{ playing.id }}" class="btn btn-outline-secondary" name="shelve">Return to backlog</button>
-                            </form>
+            <h3 class="my-4">&#127918; Currently playing</h3>
+            <div class="container playing">
+                <div class="row row-cols-auto">
+                {% for p in playing %}
+                    <div class="playing-cover">
+                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/{% if p.img %}{{ p.img }}{% else %}nocover.png{% endif %}" class="card-img-top" alt="Cover artwork for {{ p.name }}"  style="width:100%;height:auto;">
+                        <div class="container stats-overlay">
+                            <div class="heading">
+                                <p class="h3">{{ p.title }}</p>
+                            </div>
+                            <ul class="list-unstyled">
+                                <li>Days playing: {{ p.days_playing }}</li>
+                                <li>Days in backlog: {{ p.days_elapsed }}</li>
+                                <li>Days since release: {{ p.days_release }}</li>
+                            </ul>
                         </div>
                     </div>
-                </div>
-              </div>
+                {% endfor %}
+                </div> 
+            </div>
             {% endif %}
             <h3 class="my-4">&#128203; Backlog</h3>
             <table class="table align-middle table-hover">

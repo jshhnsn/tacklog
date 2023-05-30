@@ -5,11 +5,17 @@ from django.db import models
 class Backlogged(models.Model):
     game = models.IntegerField()
     date_added = models.DateTimeField(auto_now=True)
-    user = models.ForeignKey(User, related_name='backlog', 
-                                on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, 
+        related_name='backlog', 
+        on_delete=models.CASCADE
+        )
 
     def __str__(self):
         return f'{self.user} added {self.game}'
+
+    class Meta:
+        unique_together = ('user', 'game')
     
 
 class Recommend(models.Model):
@@ -23,10 +29,14 @@ class Recommend(models.Model):
 
 
 class Playing(models.Model):
-    backlog = models.ForeignKey(Backlogged, related_name='playing', 
+    backlog = models.OneToOneField(Backlogged, related_name='playing', 
                                 on_delete=models.CASCADE)
-    date_started = models.DateTimeField(auto_now=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    date_started = models.DateField()
+    user = models.ForeignKey(
+        User, 
+        related_name='playing', 
+        on_delete=models.CASCADE
+        )
 
     def __str__(self):
         return f'{self.user} is playing {self.backlog.game}'

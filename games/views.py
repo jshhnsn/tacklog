@@ -86,7 +86,7 @@ def backlog(request):
 
         # Get user details and game playing.
         user = User.objects.get(username=request.user)
-        playing = Playing.objects.filter(user=user).first()
+        playing = Playing.objects.filter(user=user).all()
 
         # If user is removing a game from backlog.
         if request.method == 'POST':
@@ -99,7 +99,8 @@ def backlog(request):
             if to_play:
                 # Add game to playing table.
                 playing_log = Playing(backlog=Backlogged.objects.get(
-                        user=user, game=to_play), user=user)
+                        user=user, game=to_play), user=user, 
+                        date_started=timezone.now())
                 playing_log.save()
                 return redirect('backlog')
             
@@ -109,7 +110,10 @@ def backlog(request):
                 return redirect('backlog')
             
             if to_shelve:
-                playing.delete()
+                shelve_log = Playing.objects.get(user=user, 
+                        backlog=Backlogged.objects.get(
+                        user=user, game=to_shelve))
+                shelve_log.delete()
                 return redirect('backlog')
 
 
@@ -134,6 +138,7 @@ def backlog(request):
                 return render(request, 'games/backlog.html')
 
             # Add date added to backlog to the games object.
+            playing_games = []
             for game in games:
                 for log in backlog:
                     if game['id'] == log['game']:
@@ -141,36 +146,36 @@ def backlog(request):
                         
                         # Play game as playing.
                         if playing:
-                            if log['id'] == playing.backlog_id:
-                                game['playing'] = True
-                                
-                                # Calculate days since game was added to backlog.
-                                current_date = datetime.strptime(
-                                    datetime.now().strftime('%Y/%m/%d'),"%Y/%m/%d")
-                                added_date = datetime.strptime(
-                                    game['date_added'].strftime('%Y/%m/%d'),"%Y/%m/%d")
-                                started_date = datetime.strptime(
-                                    playing.date_started.strftime('%Y/%m/%d'),"%Y/%m/%d")
+                            for p in playing:
+                                if log['id'] == p.backlog_id:
+                                    game['playing'] = True
+                                    
+                                    # Calculate days since game was added to backlog.
+                                    current_date = datetime.strptime(
+                                        datetime.now().strftime('%Y/%m/%d'),"%Y/%m/%d")
+                                    added_date = datetime.strptime(
+                                        game['date_added'].strftime('%Y/%m/%d'),"%Y/%m/%d")
+                                    started_date = datetime.strptime(
+                                        p.date_started.strftime('%Y/%m/%d'),"%Y/%m/%d")
 
-                                game['days_elapsed'] = (current_date - added_date).days
-                                game['days_playing'] = (current_date - started_date).days
+                                    game['days_elapsed'] = (current_date - added_date).days
+                                    game['days_playing'] = (current_date - started_date).days
 
-                                if game['first_release_date'] == 'Unknown':
-                                    game['days_release'] = False
-                                else:
-                                    release_date = datetime.strptime(
-                                        game['first_release_date'],"%Y-%m-%d")
-                                    game['days_release'] = (current_date - release_date).days
+                                    if game['first_release_date'] == 'Unknown':
+                                        game['days_release'] = False
+                                    else:
+                                        release_date = datetime.strptime(
+                                            game['first_release_date'],"%Y-%m-%d")
+                                        game['days_release'] = (current_date - release_date).days
 
-                                context_data['playing'] = game
-                            else: 
-                                game['playing'] = False
+                                    playing_games.append(game)
 
             games = sorted(
                 games, key=itemgetter('first_release_date'), reverse=True)
 
             # Render backlog page with list of games.
             context_data['backlog'] = games
+            context_data['playing'] = playing_games
 
     return render(request, 'games/backlog.html', context_data)
 
@@ -281,7 +286,7 @@ def igdb_data(query_type, input):
     endpoint = 'https://api.igdb.com/v4'
     HEADERS = {
         'Client-ID': 'eclpixd8yx6t9lfnn52s84xkcpgyq0',
-        'Authorization': 'Bearer 2o02ulh84j10on71el9qcptyvpi4b0'
+        'Authorization': 'Bearer 7gcmyv4ma2fkokisrezxn9dwwgtebc'
     }
 
     if query_type == 'search':
@@ -335,5 +340,12 @@ def igdb_data(query_type, input):
             if game['id'] == image['game']:
                 game['img'] = findall(
                     '(?:\/.+\/)(.*\.jpg)',image['url'])[0]
+                
+    # Truncate name for title.
+    for game in games:
+        if len(game['name']) > 30:
+            game['title'] = game['name'][:27].rstrip() + '...'
+        else:
+            game['title'] = game['name']
     
     return games
