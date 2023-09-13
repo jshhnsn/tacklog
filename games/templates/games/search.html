@@ -24,20 +24,28 @@
                 {% for result in search_results %}
                     <div class="gy-4">
                         <div class="card mx-auto" style="width: 18rem;">
-                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/{% if result.img %}{{ result.img }}{% else %}nocover.png{% endif %}" class="card-img-top" alt="...">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_720p/{% if result.img %}{{ result.img }}{% else %}nocover.png{% endif %}" class="card-img-top" alt="Cover art for {{ game.game_name }}">
                             <div class="card-body">
                                 <h5 class="card-title">{{ result.name }}</h5>
                                 <p class="card-text">Release date: <strong>{{ result.first_release_date }}</strong></p>
                                 <form method="post">
                                     {% csrf_token %}
-                                    {% if result.id in backlog %}
-                                        <button class="btn btn-success" onclick="removing(this);" name="game" type="submit" value="{{ result.id }}" >&#x2713; In backlog</button>
+                                    <div class="d-grid gap-2">
+                                    {% if result.status == 'playing' %}
+                                        <button class="btn btn-outline-warning" disabled>Playing</button>
+                                    {% elif result.status == 'completed' %}
+                                        <button class="btn btn-outline-success" disabled>Completed</button>
+                                    {% elif result.status == 'backlog' %}
+                                        <button class="btn btn-secondary in-lib" onclick="removing(this);" name="game_id" type="submit" value="{{ result.id }}" >&#x2713; In library</button>
                                     {% else %}
-                                        <button class="btn btn-primary" onclick="adding(this);" name="game" type="submit" value="{{ result.id }}">
-                                            Add to backlog
+                                        <button class="btn btn-primary" onclick="adding(this);" name="game_id" type="submit" value="{{ result.id }}">
+                                            Add to library
                                         </button>
                                     {% endif %}
-                                </form>     
+                                    </div>
+                                    <input type="hidden" name="game_name" value="{{ result.name }}">
+                                    <input type="hidden" name="game_release" value="{{ result.first_release_date }}">
+                                </form>    
                             </div>
                         </div>
                     </div>  
@@ -46,4 +54,15 @@
         </div>
     {% endif %}
 </div>
+<script>
+    $('button.in-lib').hover(function() {
+        $(this).removeClass("btn-secondary");
+        $(this).addClass("btn-outline-danger");
+        $(this).html("&#x2717; Remove");
+    }, function() {
+        $(this).removeClass("btn-outline-danger");
+        $(this).addClass("btn-secondary");
+        $(this).html("&#x2713; In library");
+    });
+</script>
 {% endblock %}

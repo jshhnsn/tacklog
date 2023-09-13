@@ -1,6 +1,6 @@
-from .models import Backlogged, Recommend, Playing, Goty
+from .models import Goty, Library
 
-from datetime import datetime
+from datetime import datetime, date
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -24,45 +24,74 @@ def search(request):
     query = request.GET.get('q')
     context_data = {'search_term' : query}
     
+    results = False
+
     # Check if there is a search term present.
     if query:
 
         # Get games from IGDB.
-        games = igdb_data('search', query)
-        if games == 401:
-            print(f'Error code: {games}')
+        results = igdb_data('search', query)
+        if results == 401:
+            print(f'Error code: {results}')
             messages.error(request, f'IGDB API error: 401 Unauthorized')
             return render(request, 'games/search.html')
-
-        context_data['search_results'] = games
 
     # If the user is logged in.
     if request.user.is_authenticated:
         # Get games in the user's backlog.
         user = User.objects.get(username=request.user)
-        games = user.backlog.values('game')
+        games = Library.objects.filter(user=user).values()
+
         # Transform to list of game IDs.
         backlog = []
         for game in games:
-            backlog.append(game['game'])
+            backlog.append(game['game_id'])
+
+        if results:
+            for result in results:
+                for game in games:
+                    if result['id'] == game['game_id']:
+                        result['status'] = game['status']
+                        result['date_started'] = game['date_started']
+                        result['date_completed'] = game['date_completed']
 
         # If user added or removed game.
         if request.method == 'POST':
             # Get game ID.            
-            game = int(request.POST['game'])
+            game_id = int(request.POST['game_id'])
+            game_name = request.POST['game_name']
+            date_released = request.POST['game_release']
+
             # Add to backlog if not already there.
-            if not game in backlog:
-                log = Backlogged(game=game, user=user)
-                log.save()
-                backlog.append(game)
+            if not game_id in backlog:
+                if date_released:
+                    log_lib = Library(
+                        game_id=game_id, 
+                        game_name=game_name, 
+                        date_released=date_released,
+                        date_backlogged=datetime.now(), 
+                        user=user
+                        )
+                else:
+                    log_lib = Library(
+                        game_id=game_id, 
+                        game_name=game_name,
+                        date_backlogged=datetime.now(), 
+                        user=user
+                        )
+                log_lib.save()
+            
             # Delete from backlog if already there.
             else:
-                log = Backlogged.objects.get(user=user, game=game)
-                log.delete()
-                backlog.remove(game)
+                log_lib = Library.objects.get(user=user, game_id=game_id)
+                log_lib.delete()
+            
+            return redirect(f'/search?q={query}')
 
         # Pass list of backlog game IDs to the context data.
         context_data['backlog'] = backlog
+        context_data['search_results'] = results
+        
 
     # If user is not logged in, and trying to add game to backlog.
     else:
@@ -79,103 +108,93 @@ def search(request):
 
 @login_required
 def backlog(request):
-    context_data = {}
+    
+    year = date.today().year
+    context_data = {
+        'year' : year
+        }
 
     # If user is logged in.
     if request.user.is_authenticated:
 
         # Get user details and game playing.
         user = User.objects.get(username=request.user)
-        playing = Playing.objects.filter(user=user).all()
+        playing = Library.objects.filter(user=user,status='playing').values()
+        library = Library.objects.filter(user=user
+            ).exclude(date_completed__lt=date(year,1,1)
+            ).exclude(date_completed=None, status='completed'
+            ).order_by('-date_released').values()
 
-        # If user is removing a game from backlog.
+
+        # If user is editing a game in their backlog.
         if request.method == 'POST':
             
-            # Get game ID.
-            to_play = request.POST.get('play')
-            to_remove = request.POST.get('remove')
-            to_shelve = request.POST.get('shelve')
+            # Get game ID and action.
+            game_id = request.POST.get('game_id')
+            action = request.POST.get('action')
 
-            if to_play:
-                # Add game to playing table.
-                playing_log = Playing(backlog=Backlogged.objects.get(
-                        user=user, game=to_play), user=user, 
-                        date_started=timezone.now())
-                playing_log.save()
-                return redirect('backlog')
-            
-            if to_remove:
-                remove_log = Backlogged.objects.get(user=user, game=to_remove)
-                remove_log.delete()
-                return redirect('backlog')
-            
-            if to_shelve:
-                shelve_log = Playing.objects.get(user=user, 
-                        backlog=Backlogged.objects.get(
-                        user=user, game=to_shelve))
-                shelve_log.delete()
-                return redirect('backlog')
+            # Update database.
+            if action == 'playing':
+                Library.objects.filter(user=user, game_id=game_id).update(
+                    status=action,date_started=date.today())
+            elif action == 'completed':
+                Library.objects.filter(user=user, game_id=game_id).update(
+                    status=action,date_completed=date.today())
+            elif action == 'backlog':
+                Library.objects.filter(user=user, game_id=game_id).update(
+                    status=action,date_started=None)
+            elif action == 'remove':
+                log = Library.objects.get(user=user, game_id=game_id)
+                log.delete()
+            elif action == 'edit_dates':
+                date_backlogged = request.POST.get('date_backlogged')
+                date_backlogged = None if date_backlogged is '' else date_backlogged
+                date_started = request.POST.get('date_started')
+                date_started = None if date_started is '' else date_started
+                date_completed = request.POST.get('date_completed')
+                date_completed = None if date_completed is '' else date_completed
+                status = request.POST.get('status')
+                Library.objects.filter(user=user, game_id=game_id).update(
+                    date_backlogged=date_backlogged,
+                    date_started=date_started,
+                    date_completed=date_completed,
+                    status=status,
+                    )
 
-
+            return redirect('backlog')
         
-        # Get games in user's backlog.
-        backlog = Backlogged.objects.filter(user=user).order_by(
-            '-date_added').values()
-        
-        # Transform to list of game IDs.
-        ids = []
-        for record in backlog:
-            ids.append(record['game'])
-        ids = ','.join(str(x) for x in ids)
 
-        # Get games from IGDB.
-        if ids:
-            games = igdb_data('display', ids)
+        # Gather game IDs for playing games.
+        playing_ids = []
+        for game in playing:
+            playing_ids.append(game['game_id'])
+        playing_ids = ','.join(str(x) for x in playing_ids)
+
+
+        # Add cover art image name and days played to playing games.
+        if playing_ids:
+            games = igdb_data('display', playing_ids)
 
             if games == 401:
                 print(f'Error code: {games}')
                 messages.error(request, f'IGDB API error: 401 Unauthorized')
                 return render(request, 'games/backlog.html')
 
-            # Add date added to backlog to the games object.
-            playing_games = []
             for game in games:
-                for log in backlog:
-                    if game['id'] == log['game']:
-                        game['date_added'] = log['date_added']
-                        
-                        # Play game as playing.
-                        if playing:
-                            for p in playing:
-                                if log['id'] == p.backlog_id:
-                                    game['playing'] = True
-                                    
-                                    # Calculate days since game was added to backlog.
-                                    current_date = datetime.strptime(
-                                        datetime.now().strftime('%Y/%m/%d'),"%Y/%m/%d")
-                                    added_date = datetime.strptime(
-                                        game['date_added'].strftime('%Y/%m/%d'),"%Y/%m/%d")
-                                    started_date = datetime.strptime(
-                                        p.date_started.strftime('%Y/%m/%d'),"%Y/%m/%d")
+                for p in playing:
+                    if game['id'] == p['game_id']:
+                        p['img'] = game['img']
+                        if p['date_started'] is not None:
+                            dp = (date.today() - p['date_started']).days
+                            p['days_playing'] = f"{dp:,d}"
+                        else:
+                            p['days_playing'] = '--'
+                            p['date_started'] = date(1,1,1)
 
-                                    game['days_elapsed'] = (current_date - added_date).days
-                                    game['days_playing'] = (current_date - started_date).days
+            context_data['playing'] = sorted(
+                playing, key=itemgetter('date_started'), reverse=True)
 
-                                    if game['first_release_date'] == 'Unknown':
-                                        game['days_release'] = False
-                                    else:
-                                        release_date = datetime.strptime(
-                                            game['first_release_date'],"%Y-%m-%d")
-                                        game['days_release'] = (current_date - release_date).days
-
-                                    playing_games.append(game)
-
-            games = sorted(
-                games, key=itemgetter('first_release_date'), reverse=True)
-
-            # Render backlog page with list of games.
-            context_data['backlog'] = games
-            context_data['playing'] = playing_games
+        context_data['backlog'] = library
 
     return render(request, 'games/backlog.html', context_data)
 
@@ -286,15 +305,16 @@ def igdb_data(query_type, input):
     endpoint = 'https://api.igdb.com/v4'
     HEADERS = {
         'Client-ID': 'eclpixd8yx6t9lfnn52s84xkcpgyq0',
-        'Authorization': 'Bearer 7gcmyv4ma2fkokisrezxn9dwwgtebc'
+        'Authorization': 'Bearer l4zvdekt0axizht0yly36dszgilf19'
     }
 
     if query_type == 'search':
         data = f'''
                 fields id,name,first_release_date,summary; 
-                search "{input}"; where total_rating > 0 
-                & category = (0,4,8); limit 500;
+                where name ~ *"{input}"* & first_release_date != null &
+                category = (0,4,8,10); limit 500; sort category asc;
                 '''
+        #total_rating > 0
     elif query_type == 'display':
         data = f'''
                 fields id,name,first_release_date,summary; 

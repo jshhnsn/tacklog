@@ -8,7 +8,7 @@
         .playing-cover {     
             position: relative;
             display: block;
-            width: 14em;
+            width: 10em;
             height: auto;
             padding-left: 0;
             padding-right: 0;
@@ -19,7 +19,7 @@
             position: absolute;
             bottom: 0;
             left: 0;
-            height: 60%;
+            height: 40%;
             width: 100%; 
             opacity: 0;
             transition: .5s ease;
@@ -51,28 +51,30 @@
             {% endfor %}
         {% else %}
             {% if playing %}
-            <h3 class="my-4">&#127918; Currently playing</h3>
-            <div class="container playing">
+            <h3 class="my-4">Currently playing</h3>
+            <div class="container playing my-4">
                 <div class="row row-cols-auto">
                 {% for p in playing %}
                     <div class="playing-cover">
-                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/{% if p.img %}{{ p.img }}{% else %}nocover.png{% endif %}" class="card-img-top" alt="Cover artwork for {{ p.name }}"  style="width:100%;height:auto;">
+                        <img src="https://images.igdb.com/igdb/image/upload/t_720p/{% if p.img %}{{ p.img }}{% else %}nocover.png{% endif %}" class="card-img-top" alt="Cover artwork for {{ p.name }}"  style="width:100%;height:auto;">
                         <div class="container stats-overlay">
-                            <div class="heading">
+                            <!-- <div class="heading">
                                 <p class="h3">{{ p.title }}</p>
-                            </div>
+                            </div> 
                             <ul class="list-unstyled">
                                 <li>Days playing: {{ p.days_playing }}</li>
                                 <li>Days in backlog: {{ p.days_elapsed }}</li>
                                 <li>Days since release: {{ p.days_release }}</li>
-                            </ul>
+                            </ul> -->
+                            <p class="h4 mb-0 mt-2">{{ p.days_playing }}</p>
+                            <p>days played</p>
                         </div>
                     </div>
                 {% endfor %}
                 </div> 
             </div>
             {% endif %}
-            <h3 class="my-4">&#128203; Backlog</h3>
+            <h3 class="my-4">Backlog {{ year }}</h3>
             <table class="table align-middle table-hover">
                 <thead>
                     <tr>
@@ -88,9 +90,15 @@
                         {% for game in backlog %}
                             <tr>
                                 <th scope="row">{{ forloop.counter }}</th>
-                                <td>{{ game.name }}{% if game.playing %}<span class="badge ms-3 text-bg-success">Playing</span>{% endif %}</td>
-                                <td class="text-center">{{ game.first_release_date }}</td>
-                                <td class="text-center">{{ game.date_added }}</td>
+                                <td>{{ game.game_name }}
+                                    {% if game.status == 'playing' %}
+                                        <span class="badge ms-3 text-bg-warning">Playing</span>
+                                    {% elif game.status == 'completed' %}
+                                        <span class="badge ms-3 text-bg-success">Completed — {{ game.date_completed }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">{{ game.date_released }}</td>
+                                <td class="text-center">{{ game.date_backlogged }}</td>
                                 <td class="text-center">
                                     <form method="post">
                                         {% csrf_token %}
@@ -98,19 +106,77 @@
                                             <button class="btn btn-secondary btn-sm dropdown-toggle ms-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                             </button>
                                             <ul class="dropdown-menu">
-                                                {% if game.playing %}
-                                                    <li><button class="dropdown-item" name="remove" type="submit" value="{{ game.id }}">Mark as finished</button></li>
-                                                    <li><button class="dropdown-item" name="shelve" type="submit" value="{{ game.id }}">Return to backlog</button></li>
-                                                {% else %}
-                                                    <li><button class="dropdown-item" name="play" type="submit" value="{{ game.id }}">Mark as playing</button></li>
+                                                {% if game.status == 'playing' %}
+                                                    <li><button class="dropdown-item" name="action" type="submit" value="completed">Mark as finished</button></li>
+                                                    <li><button class="dropdown-item" name="action" type="submit" value="backlog">Return to backlog</button></li>
+                                                {% elif game.status == 'backlog' %}
+                                                    <li><button class="dropdown-item" name="action" type="submit" value="playing">Mark as playing</button></li>
                                                 {% endif %}
+                                                <li><button class="dropdown-item"  type="button" data-bs-toggle="modal" data-bs-target="#exampleModal{{ game.game_id }}">Edit dates</button></li>
                                                 <li><hr class="dropdown-divider"></li>
-                                                <li><button class="dropdown-item text-danger" name="remove" type="submit" value="{{ game.id }}">&#x2717; Remove</button></li>
+                                                <li><button class="dropdown-item text-danger" name="action" type="submit" value="remove">&#x2717; Remove</button></li>
                                             </ul>
                                         </div>
+                                        <input type="hidden" name="game_id" value="{{ game.game_id }}">
                                     </form>
                                 </td>
                             </tr>
+                            <div class="modal fade" id="exampleModal{{ game.game_id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <div class="modal-header">
+                                                <h1 class="modal-title fs-5" id="exampleModalLabel">{{ game.game_name }}</h1>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="row g-3 align-items-center mb-3 mx-6">
+                                                    <div class="col">
+                                                        <label for="date_backlogged" class="col-form-label">Date backlogged</label>
+                                                    </div>
+                                                    <div class="col">
+                                                        <input aria-describedby="passwordHelpInline" class="form-control" id="date_backlogged" name="date_backlogged" placeholder="YYYY-MM-DD" type="text" value="{{ game.date_backlogged|date:"Y-m-d" }}">
+                                                    </div>
+                                                </div>
+                                                <div class="row g-3 align-items-center mb-3">
+                                                    <div class="col">
+                                                        <label for="date_started" class="col-form-label">Date started</label>
+                                                    </div>
+                                                    <div class="col">
+                                                        <input aria-describedby="passwordHelpInline" class="form-control" id="date_started" name="date_started" placeholder="YYYY-MM-DD" type="text" value="{{ game.date_started|date:"Y-m-d" }}">
+                                                    </div>
+                                                </div>
+                                                <div class="row g-3 align-items-center mb-3">
+                                                    <div class="col">
+                                                        <label for="date_completed" class="col-form-label">Date completed</label>
+                                                    </div>
+                                                    <div class="col">
+                                                        <input aria-describedby="passwordHelpInline" class="form-control" id="date_completed" name="date_completed" placeholder="YYYY-MM-DD" type="text" value="{{ game.date_completed|date:"Y-m-d" }}">
+                                                    </div>
+                                                </div>
+                                                <div class="row g-3 align-items-center">
+                                                    <div class="col">
+                                                        <label for="status" class="col-form-label">Status</label>
+                                                    </div>
+                                                    <div class="col">
+                                                        <select aria-label="status-select" class="form-select" id="status" name="status">
+                                                            <option value="backlog"{% if game.status == 'backlog' %} selected{% endif %}>Backlog</option>
+                                                            <option value="playing"{% if game.status == 'playing' %} selected{% endif %}>Playing</option>
+                                                            <option value="completed"{% if game.status == 'completed' %} selected{% endif %}>Complete</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                <button class="btn btn-primary" name="game_id" type="submit" value="{{ game.game_id }}">Save changes</button>
+                                            </div>
+                                            <input type="hidden" name="action" value="edit_dates">
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         {% endfor %}
                     </tbody>
                     {% else %}

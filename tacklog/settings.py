@@ -28,7 +28,10 @@ SECRET_KEY = 'django-insecure-h3i_)=%2tu326j7!=)a2a3irpwh_b#a#l*^(%xh20sy=q1*#z!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'env-tacklog.eba-abyv5qx6.us-west-2.elasticbeanstalk.com',
+    '127.0.0.1'
+    ]
 
 
 # Application definition
@@ -37,7 +40,6 @@ INSTALLED_APPS = [
     'games',
     'users',
     'crispy_forms',
-    'livereload',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -54,7 +56,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'livereload.middleware.LiveReloadScript',
 ]
 
 ROOT_URLCONF = 'tacklog.urls'
@@ -83,8 +84,12 @@ WSGI_APPLICATION = 'tacklog.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'initial_db',
+        'USER': 'jshhnsn',
+        'PASSWORD': 'KEqarjyT8K*dXa.-R283-y4HLjzr*zQ',
+        'HOST': 'tacklog.ctvn0ytju7z2.eu-north-1.rds.amazonaws.com',
+        'PORT': '5432',
     }
 }
 
