@@ -32,7 +32,8 @@ ALLOWED_HOSTS = [
     'env-tacklog.eba-abyv5qx6.us-west-2.elasticbeanstalk.com',
     '127.0.0.1',
     'www.tacklog.com',
-    ]
+    'tacklog.com',
+]
 
 
 # Application definition
