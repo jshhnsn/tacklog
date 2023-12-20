@@ -4,3 +4,5 @@ datadump.json
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+# SSL Files
+ssl/*
