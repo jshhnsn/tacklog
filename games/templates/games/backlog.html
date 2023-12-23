@@ -44,6 +44,11 @@
         .card-img-top {
             border-radius: 10px;
         }
+       @media screen and (max-width: 900px) {
+            .hide {
+                display: none;
+            }
+        }
     </style>
     <div class="container">
         <!-- <h2 class="my-4">&#127918; My games</h2> -->
@@ -84,8 +89,8 @@
                     <tr>
                         <th scope="col">#</th>
                         <th scope="col">Name</th>
-                        <th class="text-center" scope="col">Release date</th>
-                        <th class="text-center" scope="col">Date added to backlog</th>
+                        <th class="text-center hide" scope="col">Release date</th>
+                        <th class="text-center hide" scope="col">Date added to backlog</th>
                         <th class="text-center" scope="col">Actions</th>
                     </tr>
                 </thead>
@@ -101,8 +106,8 @@
                                         <span class="badge ms-3 text-bg-success">Completed — {{ game.date_completed }}</span>
                                     {% endif %}
                                 </td>
-                                <td class="text-center">{{ game.date_released }}</td>
-                                <td class="text-center">{{ game.date_backlogged }}</td>
+                                <td class="text-center hide">{{ game.date_released }}</td>
+                                <td class="text-center hide">{{ game.date_backlogged }}</td>
                                 <td class="text-center">
                                     <form method="post">
                                         {% csrf_token %}
