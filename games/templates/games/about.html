@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}
+    <title>About</title>
+{% endblock %}
+
+{% block content %}
+    <style>
+       @media screen and (max-width: 900px) {
+            .row {
+                display: block;
+            }
+        }
+    </style>
+    <div class="container">
+        <h2 class="my-4">Welcome to Tacklog!</h2>
+        <div class="row">
+            <div class="col">
+                <p>Embark on a journey to conquer your ever-growing video game backlog with Tacklog, where our mission is to help you tackle each title one game at a time. Our name, a clever blend of "tackle" and "backlog," represents our commitment to helping you navigate, organize, and enjoy your personal gaming odyssey.</p>
+                <h3 class="my-4">Why Tacklog?</h3>
+                <ul>
+                    <li><strong>Track Your Progress:</strong> With Tacklog, list the games you own, the ones you're diving into, and the adventures you've conquered. Keep a clear record of where you've been and plot your path to where you're headed next.</li>
+                    <li><strong>Organize with Ease:</strong> Our intuitive interface makes it simple to categorize your games, mark your progress, and even celebrate each completion with a timestamp of triumph.</li>  
+                    <li><strong>Stay Motivated:</strong> Witness your backlog shrink as you progress, with stats and visuals that showcase your journey from overwhelmed to overjoyed.</li>          
+                </ul>
+                <p>Join us at Tacklog and turn that daunting mountain of games into a series of delightful escapades. It's time to take control, play smart, and enjoy the ride. Your adventure awaits!</p>
+                <a type="button" class="btn btn-success my-3" href="/login">Get started!</a>
+            </div>
+            <div class="col">
+                <p class="text-center my-3"><img class="img-fluid rounded text-center" width="500px" src="https://cldup.com/X0sxDi0O6T.png" /></p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

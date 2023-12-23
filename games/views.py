@@ -16,8 +16,13 @@ import requests
 
 
 def index(request):
-    return render(request, 'games/index.html')
+    if request.user.is_authenticated:
+        return redirect('backlog')
+    else:
+        return redirect('about')
 
+def about(request):
+    return render(request, 'games/about.html')
 
 def search(request):
     # Retrieve search term and store in context data.
@@ -305,7 +310,7 @@ def igdb_data(query_type, input):
     endpoint = 'https://api.igdb.com/v4'
     HEADERS = {
         'Client-ID': 'eclpixd8yx6t9lfnn52s84xkcpgyq0',
-        'Authorization': 'Bearer fv5sh5odexyfttksxznv9yitgaoav6'
+        'Authorization': 'Bearer 7xtwkva9wd2fbyxa42o1acv7jzn27z'
     }
 
     if query_type == 'search':

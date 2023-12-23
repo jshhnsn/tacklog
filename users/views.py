@@ -27,6 +27,10 @@ def register_page(request):
                              continue.''')
             return redirect('login')
     
+    # If user is logged in, send them to the search page.
+    if request.user.is_authenticated:
+        return redirect('search')
+
     # If not submitting a form, render registration form.
     return render(request, 'users/register.html', {
         'form' : form
@@ -61,6 +65,10 @@ def login_page(request):
             messages.info(request, 'Username or password is incorrect', 
                           extra_tags='fail')
 
+    # If user is logged in, send them to the search page.
+    if request.user.is_authenticated:
+        return redirect('search')
+    
     # Create login form and render the login page.
     form = AuthenticationForm()
     return render(request, 'users/login.html', {
