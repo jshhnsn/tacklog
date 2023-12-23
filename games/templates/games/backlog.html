@@ -99,11 +99,11 @@
                         {% for game in backlog %}
                             <tr>
                                 <th scope="row">{{ forloop.counter }}</th>
-                                <td>{{ game.game_name }}
+                                <td><span class="me-3">{{ game.game_name }}</span>
                                     {% if game.status == 'playing' %}
-                                        <span class="badge ms-3 text-bg-warning">Playing</span>
+                                        <span class="badge text-bg-warning">Playing</span>
                                     {% elif game.status == 'completed' %}
-                                        <span class="badge ms-3 text-bg-success">Completed — {{ game.date_completed }}</span>
+                                        <span class="badge text-bg-success">Completed<span class="hide"> — {{ game.date_completed }}</span></span>
                                     {% endif %}
                                 </td>
                                 <td class="text-center hide">{{ game.date_released }}</td>
