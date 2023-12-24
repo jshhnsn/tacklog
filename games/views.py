@@ -110,7 +110,6 @@ def search(request):
     # Render search page with list of games IDs in user's backlog.
     return render(request, 'games/search.html', context_data)
 
-
 @login_required
 def backlog(request):
     
