@@ -1,5 +1,5 @@
 # Tacklog
-#### Video Demo:  <URL HERE>
+#### Video Demo:  https://www.loom.com/share/9052659eecb74e328562707fb4c42a26?sid=a0189e19-c16e-471b-9c89-d26124adb9fb
 #### Description:
 The idea for my  final project started small, and quickly ballooned. If I have learned one non-technical thing from this project, it's the importance of defining the scope of a project and sticking to those guidelines.
 
