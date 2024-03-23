@@ -86,11 +86,11 @@
                         <h3 class="my-4">Backlog {{ year }}</h3>    
                     </div>
                     <div class="col col-sm-4 hide">
-                        <input class="form-control my-4" type="text" id="myInput" onkeyup="dynamicSearch()" placeholder="Search for game">
+                        <input class="form-control my-4" type="text" id="myInputDesktop" onkeyup="dynamicSearch('desktop')" placeholder="Search for game">
                     </div>
                 </div>
             </div>
-            <input class="form-control mb-4 mt-2 show" type="text" id="myInput" onkeyup="dynamicSearch()" placeholder="Search for game">
+            <input class="form-control mb-4 mt-2 show" type="text" id="myInputMobile" onkeyup="dynamicSearch('mobile')" placeholder="Search for game">
             <table class="table align-middle table-hover">
                 <thead>
                     <tr>
@@ -208,22 +208,28 @@
         const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
     </script>
     <script>
-        function dynamicSearch() {
-          var input = document.getElementById('myInput'),
-            filter = input.value.toUpperCase(),
+        function dynamicSearch(field) {
+            var input; 
+            if (field == 'mobile') {
+                input = document.getElementById('myInputMobile');
+            } else {
+                input = document.getElementById('myInputDesktop');
+            }
+
+            var filter = input.value.toUpperCase(),
             ul = document.getElementById("gamesList"),
             li = ul.getElementsByTagName('tr'), 
             txtValue;
         
-          for (let i = 0; i < li.length; i++) {
-            a = li[i].querySelector("#gameName");
-            txtValue = a.textContent || a.innerText;
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-              li[i].style.display = "";
-            } else {
-              li[i].style.display = "none";
+            for (let i = 0; i < li.length; i++) {
+                a = li[i].querySelector("#gameName");
+                txtValue = a.textContent || a.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    li[i].style.display = "";
+                } else {
+                    li[i].style.display = "none";
+                }
             }
-          }
         }
     </script>
 {% endblock %}
