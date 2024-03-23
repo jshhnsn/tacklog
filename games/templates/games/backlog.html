@@ -44,14 +44,19 @@
         .card-img-top {
             border-radius: 10px;
         }
+        .show {
+            display: none;
+        }
        @media screen and (max-width: 900px) {
             .hide {
                 display: none;
             }
+            .show {
+                display: block;
+            }
         }
     </style>
     <div class="container">
-        <!-- <h2 class="my-4">&#127918; My games</h2> -->
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-danger" role="alert">
@@ -62,19 +67,11 @@
             {% if playing %}
             <h3 class="my-4">Currently playing</h3>
             <div class="container playing my-4">
-                <div class="row row-cols-auto">
+                <div class="row row-cols-auto justify-content-evenly">
                 {% for p in playing %}
                     <div class="playing-cover">
                         <img src="https://images.igdb.com/igdb/image/upload/t_720p/{% if p.img %}{{ p.img }}{% else %}nocover.png{% endif %}" class="card-img-top" alt="Cover artwork for {{ p.name }}"  style="width:100%;height:auto;">
                         <div class="container stats-overlay">
-                            <!-- <div class="heading">
-                                <p class="h3">{{ p.title }}</p>
-                            </div> 
-                            <ul class="list-unstyled">
-                                <li>Days playing: {{ p.days_playing }}</li>
-                                <li>Days in backlog: {{ p.days_elapsed }}</li>
-                                <li>Days since release: {{ p.days_release }}</li>
-                            </ul> -->
                             <p class="h4 mb-0 mt-2">{{ p.days_playing }}</p>
                             <p>days played</p>
                         </div>
@@ -83,7 +80,17 @@
                 </div> 
             </div>
             {% endif %}
-            <h3 class="my-4">Backlog {{ year }}</h3>
+            <div class="container">
+                <div class="row">
+                    <div class="col ps-0">
+                        <h3 class="my-4">Backlog {{ year }}</h3>    
+                    </div>
+                    <div class="col col-sm-4 hide">
+                        <input class="form-control my-4" type="text" id="myInput" onkeyup="dynamicSearch()" placeholder="Search for game">
+                    </div>
+                </div>
+            </div>
+            <input class="form-control mb-4 mt-2 show" type="text" id="myInput" onkeyup="dynamicSearch()" placeholder="Search for game">
             <table class="table align-middle table-hover">
                 <thead>
                     <tr>
@@ -95,11 +102,11 @@
                     </tr>
                 </thead>
                 {% if backlog %}
-                    <tbody>
+                    <tbody id="gamesList">
                         {% for game in backlog %}
                             <tr>
                                 <th scope="row">{{ forloop.counter }}</th>
-                                <td><span class="me-3">{{ game.game_name }}</span>
+                                <td><span class="me-3" id="gameName">{{ game.game_name }}</span>
                                     {% if game.status == 'playing' %}
                                         <span class="badge text-bg-warning">Playing</span>
                                     {% elif game.status == 'completed' %}
@@ -199,5 +206,24 @@
     <script>
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
         const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    </script>
+    <script>
+        function dynamicSearch() {
+          var input = document.getElementById('myInput'),
+            filter = input.value.toUpperCase(),
+            ul = document.getElementById("gamesList"),
+            li = ul.getElementsByTagName('tr'), 
+            txtValue;
+        
+          for (let i = 0; i < li.length; i++) {
+            a = li[i].querySelector("#gameName");
+            txtValue = a.textContent || a.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+              li[i].style.display = "";
+            } else {
+              li[i].style.display = "none";
+            }
+          }
+        }
     </script>
 {% endblock %}

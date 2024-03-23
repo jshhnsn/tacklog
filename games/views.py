@@ -152,11 +152,11 @@ def backlog(request):
                 log.delete()
             elif action == 'edit_dates':
                 date_backlogged = request.POST.get('date_backlogged')
-                date_backlogged = None if date_backlogged is '' else date_backlogged
+                date_backlogged = None if date_backlogged == '' else date_backlogged
                 date_started = request.POST.get('date_started')
-                date_started = None if date_started is '' else date_started
+                date_started = None if date_started == '' else date_started
                 date_completed = request.POST.get('date_completed')
-                date_completed = None if date_completed is '' else date_completed
+                date_completed = None if date_completed == '' else date_completed
                 status = request.POST.get('status')
                 Library.objects.filter(user=user, game_id=game_id).update(
                     date_backlogged=date_backlogged,
