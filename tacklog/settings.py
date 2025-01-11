@@ -30,6 +30,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'env-tacklog.eba-abyv5qx6.us-west-2.elasticbeanstalk.com',
+    'tacklog-625057921.us-west-2.elb.amazonaws.com',
     '127.0.0.1',
     'www.tacklog.com',
     'tacklog.com',
