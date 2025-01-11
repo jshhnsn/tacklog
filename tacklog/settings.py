@@ -34,7 +34,6 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'www.tacklog.com',
     'tacklog.com',
-    '172.31.30.130',
 ]
 
 
