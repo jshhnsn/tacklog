@@ -54,6 +54,9 @@
             .show {
                 display: block;
             }
+            #currently-playing {
+                justify-content: space-around;
+            }
         }
     </style>
     <div class="container">
@@ -67,7 +70,7 @@
             {% if playing %}
             <h3 class="my-4">Currently playing</h3>
             <div class="container playing my-4">
-                <div class="row row-cols-auto justify-content-evenly">
+                <div class="row row-cols-auto" id="currently-playing">
                 {% for p in playing %}
                     <div class="playing-cover">
                         <img src="https://images.igdb.com/igdb/image/upload/t_720p/{% if p.img %}{{ p.img }}{% else %}nocover.png{% endif %}" class="card-img-top" alt="Cover artwork for {{ p.name }}"  style="width:100%;height:auto;">
