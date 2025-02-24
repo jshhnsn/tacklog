@@ -124,6 +124,7 @@ def backlog(request):
         # Get user details and game playing.
         user = User.objects.get(username=request.user)
         playing = Library.objects.filter(user=user,status='playing').values()
+        completed = Library.objects.filter(user=user,status='completed',date_completed__gte=date(year,1,1)).order_by('-date_completed').values()
         library = Library.objects.filter(user=user
             ).exclude(date_completed__lt=date(year,1,1)
             ).exclude(date_completed=None, status='completed'
@@ -197,9 +198,31 @@ def backlog(request):
 
             context_data['playing'] = sorted(
                 playing, key=itemgetter('date_started'), reverse=True)
+            
+        # Gather game IDs for playing games.
+        complete_ids = []
+        for game in completed:
+            complete_ids.append(game['game_id'])
+        complete_ids = ','.join(str(x) for x in complete_ids)
+        
+        # Add cover art image name and days played to completed games.
+        if complete_ids:
+            games = igdb_data('display', complete_ids)
+
+            if games == 401:
+                print(f'Error code: {games}')
+                messages.error(request, f'IGDB API error: 401 Unauthorized')
+                return render(request, 'games/backlog.html')
+
+            for game in games:
+                for c in completed:
+                    if game['id'] == c['game_id']:
+                        c['img'] = game['img']
+
+            context_data['completed'] = completed
 
         context_data['backlog'] = library
-
+    #import pdb; pdb.set_trace()
     return render(request, 'games/backlog.html', context_data)
 
 @login_required

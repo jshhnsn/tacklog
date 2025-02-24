@@ -19,6 +19,17 @@
             overflow: hidden;
             border-radius: 10px;
         }
+        .completed-cover {     
+            position: relative;
+            display: block;
+            width: 7em;
+            height: auto;
+            padding-left: 0;
+            padding-right: 0;
+            overflow: hidden;
+            border-radius: 10px;
+            filter: grayscale(0.8);
+        }
         .stats-overlay {
             position: absolute;
             bottom: 0;
@@ -83,6 +94,16 @@
                 </div> 
             </div>
             {% endif %}
+            <h3 class="my-4">Completed this year</h3>
+            <div class="container playing my-4">
+                <div class="row row-cols-auto" id="currently-playing">
+                {% for c in completed %}
+                    <div class="completed-cover">
+                        <img src="https://images.igdb.com/igdb/image/upload/t_720p/{% if c.img %}{{ c.img }}{% else %}nocover.png{% endif %}" class="card-img-top" alt="Cover artwork for {{ c.name }}"  style="width:100%;height:auto;">
+                    </div>
+                {% endfor %}
+                </div> 
+            </div>
             <div class="container">
                 <div class="row">
                     <div class="col ps-0">
