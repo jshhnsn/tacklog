@@ -87,8 +87,12 @@ WSGI_APPLICATION = 'tacklog.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'initial_db',
+        'USER': 'jshhnsn',
+        'PASSWORD': 'KEqarjyT8K*dXa.-R283-y4HLjzr*zQ',
+        'HOST': 'tacklog.ctvn0ytju7z2.eu-north-1.rds.amazonaws.com',
+        'PORT': '5432',
     }
 }
 
