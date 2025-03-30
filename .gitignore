@@ -1,5 +1,5 @@
 db.sqlite3
-datadump.json
+/db_backups
 # Elastic Beanstalk Files
 .ebextensions/*
 .elasticbeanstalk/*

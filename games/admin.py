@@ -13,7 +13,14 @@ class LibraryAdmin(admin.ModelAdmin):
         'date_released',
         'date_backlogged',
         'date_started',
+        'date_retired',
         'date_completed',
+        'platform_steam',
+        'platform_playstation',
+        'platform_switch',
+        'platform_xbox',
+        'platform_playdate',
+        'platform_other',
     )
 
 admin.site.register(Goty)

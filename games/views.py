@@ -127,6 +127,7 @@ def backlog(request):
         completed = Library.objects.filter(user=user,status='completed',date_completed__gte=date(year,1,1)).order_by('-date_completed').values()
         library = Library.objects.filter(user=user
             ).exclude(date_completed__lt=date(year,1,1)
+            ).exclude(date_retired__lt=date(year,1,1)
             ).exclude(date_completed=None, status='completed'
             ).order_by('-date_released').values()
 
@@ -142,12 +143,15 @@ def backlog(request):
             if action == 'playing':
                 Library.objects.filter(user=user, game_id=game_id).update(
                     status=action,date_started=date.today())
+            elif action == 'retired':
+                Library.objects.filter(user=user, game_id=game_id).update(
+                    status=action,date_retired=date.today())
             elif action == 'completed':
                 Library.objects.filter(user=user, game_id=game_id).update(
                     status=action,date_completed=date.today())
             elif action == 'backlog':
                 Library.objects.filter(user=user, game_id=game_id).update(
-                    status=action,date_started=None)
+                    status=action,date_started=None,date_retired=None)
             elif action == 'remove':
                 log = Library.objects.get(user=user, game_id=game_id)
                 log.delete()
