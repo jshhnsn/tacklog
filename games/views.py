@@ -336,7 +336,7 @@ def igdb_data(query_type, input):
     endpoint = 'https://api.igdb.com/v4'
     HEADERS = {
         'Client-ID': 'eclpixd8yx6t9lfnn52s84xkcpgyq0',
-        'Authorization': 'Bearer 93nj18cq31dwtd9ad7c3pxdf7d43no'
+        'Authorization': 'Bearer 1c4rjsfcwnuzbdqtwyn2ybd6dlssdj'
     }
 
     if query_type == 'search':
