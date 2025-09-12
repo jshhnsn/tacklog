@@ -226,7 +226,7 @@ def backlog(request):
             context_data['completed'] = completed
 
         context_data['backlog'] = library
-    #import pdb; pdb.set_trace()
+
     return render(request, 'games/backlog.html', context_data)
 
 @login_required
@@ -343,7 +343,7 @@ def igdb_data(query_type, input):
         data = f'''
                 fields id,name,first_release_date,summary; 
                 where name ~ *"{input}"* & first_release_date != null &
-                category = (0,4,8,10); limit 500; sort category asc;
+                game_type = (0,4,8,10); limit 500; sort game_type asc;
                 '''
         #total_rating > 0
     elif query_type == 'display':
