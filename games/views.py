@@ -11,6 +11,7 @@ from operator import itemgetter
 from random import choice
 from re import findall
 
+import os
 import random
 import requests
 
@@ -335,8 +336,8 @@ def igdb_data(query_type, input):
 
     endpoint = 'https://api.igdb.com/v4'
     HEADERS = {
-        'Client-ID': 'eclpixd8yx6t9lfnn52s84xkcpgyq0',
-        'Authorization': 'Bearer sphc9bjijep1p539efwdcii3f2sjkn'
+        'Client-ID': os.environ['IGDB_CLIENT_ID'],
+        'Authorization': os.environ['IGDB_CLIENT_SECRET']
     }
 
     if query_type == 'search':
