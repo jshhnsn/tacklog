@@ -7,3 +7,5 @@ db.sqlite3
 !.elasticbeanstalk/*.global.yml
 # SSL Files
 ssl/*
+# Environment variables
+.env
