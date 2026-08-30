@@ -8,4 +8,5 @@ db.sqlite3
 # SSL Files
 ssl/*
 # Environment variables
-.env
+.env__pycache__/
+*.pyc
